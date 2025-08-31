@@ -58,12 +58,13 @@
                     density="comfortable" hide-default-footer @click:row="goToAdminDashboard">
                     <!-- Disable Switch -->
                     <template #item.is_disabled="{ item }">
-                         <div class="custom-toggle-switch" @click="toggleDisable(item)">
+                         <div class="custom-toggle-switch" @click.stop="toggleDisable(item)">
                               <div class="toggle-track" :class="{ 'active': !item.is_disabled }">
                                    <div class="toggle-knob" :class="{ 'active': !item.is_disabled }"></div>
                               </div>
                          </div>
                     </template>
+
                </v-data-table>
 
                <!-- Pagination -->
@@ -194,19 +195,19 @@ const fetchOrganizationData = async () => {
 
 // Toggle Disable
 const toggleDisable = async (item: any) => {
-     try {
-          // Toggle the value first
-          item.is_disabled = !item.is_disabled;
+     const previousState = item.is_disabled;
+     item.is_disabled = !previousState;
 
+     try {
           await api.patch(`/super-admin/organizations/${item.id}/status`, {
                is_disabled: item.is_disabled
           });
      } catch (error) {
           console.error("Failed to update disable status:", error);
-          // Revert the change if API call fails
-          item.is_disabled = !item.is_disabled;
+          item.is_disabled = previousState; // revert on error
      }
 };
+
 
 // Filter Dialog Action
 const openFilterDialog = () => {
@@ -244,11 +245,13 @@ onMounted(() => {
      align-items: center;
      justify-content: end;
 }
+
 @media (max-width: 1024px) {
-    .filters {
-        flex-wrap: wrap;
-        justify-content: flex-start; /* Optional: aligns items to the left when wrapped */
-    }
+     .filters {
+          flex-wrap: wrap;
+          justify-content: flex-start;
+          /* Optional: aligns items to the left when wrapped */
+     }
 }
 
 .filter-btn {
