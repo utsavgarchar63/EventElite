@@ -7,13 +7,14 @@
           <h5 class="title">{{ eventType }} Events ({{ totalEvents }} Events)</h5>
 
           <!-- Search -->
-          <v-text-field v-model="search" label="Search by Name, Venue" prepend-inner-icon="mdi-magnify" dense
-            variant="outlined" hide-details clearable class="search-bar" />
+
+          <v-text-field v-model="search" placeholder="Search by Name, Venue" variant="outlined" hide-details density="compact"
+            class="search-bar" clearable append-inner-icon="mdi-magnify" />
 
           <!-- Date Picker -->
           <v-menu v-model="menu" :close-on-content-click="false" transition="scale-transition" offset-y>
             <template #activator="{ props }">
-              <v-text-field class="date-picker" v-bind="props" v-model="formattedDate" label="Select Date Range" dense
+              <v-text-field class="date-picker" v-bind="props" v-model="formattedDate" label="Select Date Range" density="compact"
                 variant="outlined" hide-details readonly prepend-inner-icon="mdi-calendar" />
             </template>
             <v-card>
@@ -27,10 +28,10 @@
 
           <!-- View Options -->
           <v-select v-model="view" :items="viewOptions" dense variant="outlined" hide-details class="view-select"
-            prepend-inner-icon="mdi-view-list" />
+          density="compact"  prepend-inner-icon="mdi-view-list" />
 
           <!-- Filter Icon -->
-          <v-btn icon class="filter-btn" @click="openFilterDialog">
+          <v-btn icon class="filter-btn" @click="openFilterDialog" >
             <v-icon>mdi-filter-variant</v-icon>
           </v-btn>
         </div>
@@ -184,13 +185,15 @@ watch(page, fetchEvents);
 
 .filter-btn {
   border: 1px solid #D5D6DA;
-  height: 50px;
-  width: 50px;
+  height: 40px;
+  width: 40px;
   color: #525454;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .search-bar {
+  background-color: #F4F4F4;
+  border-radius: 8px;
   width: 300px;
 }
 

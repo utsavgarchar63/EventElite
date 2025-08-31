@@ -53,18 +53,32 @@ watch(mdAndDown, (val) => {
     <!------Header-------->
     <v-app-bar elevation="0" height="70" class="top-header">
         <div class="d-flex align-center justify-space-between w-100">
-            <div>
+            <!-- Left side: Menu Button -->
+            <div class="d-flex align-center">
                 <v-btn class="hidden-lg-and-up ms-md-3 ms-sm-5 ms-3 text-muted" @click="sDrawer = !sDrawer" icon
                     variant="flat" size="small">
                     <Menu2Icon size="20" stroke-width="1.5" />
                 </v-btn>
+
+                <!-- ✅ Search Bar -->
+                <v-text-field placeholder="Search here..." variant="outlined" hide-details density="compact"
+                    class="search-input ms-4" append-inner-icon="mdi-magnify" />
             </div>
+
+            <!-- Right side: Notifications & Profile -->
             <div>
-                <!-- Notification -->
                 <NotificationDD />
-                <!-- User Profile -->
                 <ProfileDD />
             </div>
         </div>
     </v-app-bar>
+
 </template>
+
+<style>
+.search-input {
+    background-color: #F4F4F4;
+    border-radius: 8px;
+    min-width: 350px;
+}
+</style>
