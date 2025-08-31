@@ -11,6 +11,7 @@ import { Menu2Icon } from 'vue-tabler-icons';
 import NotificationDD from './vertical-header/NotificationDD.vue';
 import ProfileDD from './vertical-header/ProfileDD.vue';
 import NavCollapse from './vertical-sidebar/NavCollapse/NavCollapse.vue';
+import SettingDD from './vertical-header/SettingDD.vue';
 const sidebarMenu = useSidebarMenu();
 const { mdAndDown } = useDisplay();
 const sDrawer = ref(true);
@@ -67,6 +68,7 @@ watch(mdAndDown, (val) => {
 
             <!-- Right side: Notifications & Profile -->
             <div>
+                <SettingDD />
                 <NotificationDD />
                 <ProfileDD />
             </div>

@@ -67,6 +67,7 @@ const handleSubmit = async () => {
             if (responseData.registration_complete === false && responseData.payment_complete === false && responseData.role == "admin") {
                 localStorage.setItem("currentStep", "2");
                 localStorage.setItem("legal_name", responseData.data.legal_name);
+                localStorage.setItem("admin_id", responseData.data.id.toString());
                 await router.push("/auth/register");
                 return;
             } else {
