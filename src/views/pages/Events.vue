@@ -16,15 +16,31 @@
           </v-row>
 
           <!-- Tabs for Events -->
+          <!-- Tabs for Events -->
           <div style="margin-top: 20px; background-color: white; width: 100%; padding: 10px; border-radius: 10px;">
-               <v-tabs v-model="activeTab" background-color="white" color="primary"  slider-color="primary"
-                    class="main-tabs">
-                    <v-tab value="upcoming" class="text-body-1">Upcoming Events</v-tab>
-                    <v-tab value="past" class="text-body-1">Past Events</v-tab>
-                    <v-tab value="draft" class="text-body-1">Draft Events</v-tab>
-                    <v-tab value="cancelled" class="text-body-1">Cancelled Events</v-tab>
-               </v-tabs>
+               <v-row class="align-center">
 
+                    <!-- Tabs -->
+                    <v-col>
+                         <v-tabs v-model="activeTab" background-color="white" color="primary" slider-color="primary"
+                              class="main-tabs">
+                              <v-tab value="upcoming" class="text-body-1">Upcoming Events</v-tab>
+                              <v-tab value="past" class="text-body-1">Past Events</v-tab>
+                              <v-tab value="draft" class="text-body-1">Draft Events</v-tab>
+                              <v-tab value="cancelled" class="text-body-1">Cancelled Events</v-tab>
+                         </v-tabs>
+                    </v-col>
+
+                    <!-- End Download Button -->
+                    <v-col cols="auto" class="d-flex align-center">
+                         <v-btn variant="outlined" color="#525454" style="border-color: #D5D6DA;"
+                              prepend-icon="mdi-download" @click="downloadReport">
+                              Download
+                         </v-btn>
+                    </v-col>
+               </v-row>
+
+               <!-- Tabs Content -->
                <v-window v-model="activeTab">
                     <v-window-item value="upcoming">
                          <EventList eventType="upcoming" />
@@ -40,6 +56,7 @@
                     </v-window-item>
                </v-window>
           </div>
+
 
           <!-- Snackbar for notifications -->
           <v-snackbar v-model="useSnackbarStore().snackbar" :color="useSnackbarStore().color" timeout="4000"
@@ -79,6 +96,10 @@ const eventCards = ref([
      { title: "Total Revenue", value: "$0", icon: dollarIcon, avatarColor: "#33B875" }
 ]);
 
+const downloadReport = () => {
+     console.log("Download report logic here");
+     // You can add CSV, Excel, or PDF download logic here
+};
 
 const fetchEventStats = async () => {
      // try {

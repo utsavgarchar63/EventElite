@@ -8,14 +8,14 @@
 
           <!-- Search -->
 
-          <v-text-field v-model="search" placeholder="Search by Name, Venue" variant="outlined" hide-details density="compact"
-            class="search-bar" clearable append-inner-icon="mdi-magnify" />
+          <v-text-field v-model="search" placeholder="Search by Name, Venue" variant="outlined" hide-details
+            density="compact" class="search-bar" clearable append-inner-icon="mdi-magnify" />
 
           <!-- Date Picker -->
           <v-menu v-model="menu" :close-on-content-click="false" transition="scale-transition" offset-y>
             <template #activator="{ props }">
-              <v-text-field class="date-picker" v-bind="props" v-model="formattedDate" label="Select Date Range" density="compact"
-                variant="outlined" hide-details readonly prepend-inner-icon="mdi-calendar" />
+              <v-text-field class="date-picker" v-bind="props" v-model="formattedDate" label="Select Date Range"
+                density="compact" variant="outlined" hide-details readonly prepend-inner-icon="mdi-calendar" />
             </template>
             <v-card>
               <v-date-picker v-model="dates" range scrollable @update:model-value="updateFormattedDate" />
@@ -28,12 +28,41 @@
 
           <!-- View Options -->
           <v-select v-model="view" :items="viewOptions" dense variant="outlined" hide-details class="view-select"
-          density="compact"  prepend-inner-icon="mdi-view-list" />
+            density="compact" prepend-inner-icon="mdi-view-list" />
 
           <!-- Filter Icon -->
-          <v-btn icon class="filter-btn" @click="openFilterDialog" >
+          <v-btn icon class="filter-btn" @click="openFilterDialog">
             <v-icon>mdi-filter-variant</v-icon>
           </v-btn>
+          <!-- Filter Icon with Dropdown -->
+          <v-menu v-model="filterMenu" offset-y :close-on-content-click="false">
+            <template #activator="{ props }">
+              <v-btn icon class="filter-btn" v-bind="props">
+                <v-icon>mdi-filter</v-icon>
+              </v-btn>
+            </template>
+
+            <v-card style="width: 350px; padding: 15px; border-radius: 10px !important;">
+              <!-- Search Inside Dropdown -->
+              <v-text-field v-model="filterSearch" placeholder="Search fields" variant="outlined" density="compact"
+                clearable prepend-inner-icon="mdi-magnify" />
+
+              <!-- Checkboxes -->
+              <v-checkbox v-model="selectAll" label="Select All" color="primary" @change="toggleSelectAll"
+                hide-details />
+
+              <v-checkbox v-for="field in filterOptions" :key="field.value" v-model="selectedFilters"
+                :label="field.label" :value="field.value" :disabled="selectAll" color="primary" hide-details />
+
+              <!-- Action Buttons -->
+              <div class="d-flex mt-3 gap-2">
+                <v-btn variant="outlined" class="w-50" color="primary" size="large" @click="clearFilters">Clear</v-btn>
+                <v-btn color="primary" class="w-50" size="large" @click="applyFilters">Filter</v-btn>
+              </div>
+            </v-card>
+          </v-menu>
+
+
         </div>
       </div>
 
@@ -45,6 +74,22 @@
       <!-- Event Table -->
       <v-data-table v-else :headers="headers" :items="filteredEvents" hide-default-footer class="custom-table"
         density="comfortable">
+
+        <template #item.actions="{ item }">
+          <div class="action-wrapper">
+            <!-- Show Three Dot Button Only If Not Active -->
+            <v-icon color="#525454" v-if="!item.showActions" @click="toggleAction(item)">mdi-dots-horizontal</v-icon>
+
+            <!-- Show Action Icons If Active -->
+            <div v-else class="action-icons">
+              <v-icon color="primary" @click="shareEvent(item)">mdi-share-variant</v-icon>
+              <v-icon color="primary" @click="downloadEvent(item)">mdi-download</v-icon>
+              <v-icon color="primary" @click="openWebsite(item)">mdi-web</v-icon>
+            </div>
+          </div>
+        </template>
+
+
         <template #item.name="{ item }">
           <strong>{{ item.name }}</strong>
         </template>
@@ -82,7 +127,22 @@ const menu = ref(false);
 const dates = ref([]);
 const formattedDate = ref("");
 const view = ref("View");
-const viewOptions = ["View", "Detailed"];
+const viewOptions = ["List", "Title"];
+const filterMenu = ref(false);
+const filterSearch = ref("");
+const selectAll = ref(false);
+
+const filterOptions = [
+  { label: "Event Name", value: "name" },
+  { label: "Date", value: "start_date" },
+  { label: "Location", value: "venue" },
+  { label: "Event Type", value: "event_type" },
+  { label: "Price", value: "price" },
+  { label: "Tickets Sold", value: "tickets_sold" }
+];
+
+const selectedFilters = ref([]);
+
 
 const headers = [
   { title: "Event Name", key: "name" },
@@ -90,8 +150,29 @@ const headers = [
   { title: "Location", key: "venue" },
   { title: "Event Type", key: "event_type" },
   { title: "Price", key: "price" },
-  { title: "Tickets Sold", key: "tickets_sold" }
+  { title: "Tickets Sold", key: "tickets_sold" },
+  { title: "Actions", key: "actions", sortable: false }
 ];
+
+const toggleAction = (item) => {
+  // Close other rows
+  events.value.forEach(e => (e.showActions = false));
+  // Toggle the clicked one
+  item.showActions = true;
+};
+
+
+const shareEvent = (item) => {
+  console.log("Share event:", item.name);
+};
+
+const downloadEvent = (item) => {
+  console.log("Download event:", item.name);
+};
+
+const openWebsite = (item) => {
+  console.log("Open website for:", item.name);
+};
 
 // Fetch Events API
 const fetchEvents = async () => {
@@ -125,6 +206,28 @@ watch(search, () => {
     fetchEvents();
   }, 500);
 });
+
+// Select All logic
+const toggleSelectAll = () => {
+  if (selectAll.value) {
+    selectedFilters.value = filterOptions.map(f => f.value);
+  } else {
+    selectedFilters.value = [];
+  }
+};
+
+// Clear Filters
+const clearFilters = () => {
+  selectedFilters.value = [];
+  selectAll.value = false;
+  filterSearch.value = "";
+};
+
+// Apply Filters
+const applyFilters = () => {
+  console.log("Selected Filters:", selectedFilters.value);
+  filterMenu.value = false;
+};
 
 // Filtered Events
 const filteredEvents = computed(() => {
@@ -183,13 +286,23 @@ watch(page, fetchEvents);
   }
 }
 
+
 .filter-btn {
   border: 1px solid #D5D6DA;
   height: 40px;
   width: 40px;
   color: #525454;
   border-radius: 8px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
+
+.filter-btn:focus,
+.filter-btn.v-btn--active {
+  border-color: #1976d2;
+  /* Vuetify primary color */
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.3);
+}
+
 
 .search-bar {
   background-color: #F4F4F4;
@@ -210,5 +323,36 @@ watch(page, fetchEvents);
   width: 100%;
   border-radius: 8px;
   margin-top: 10px;
+}
+
+.action-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+
+.action-icons {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-checkbox {
+  margin: 0;
+  /* Remove default spacing */
+  padding: 0;
+  /* Remove extra padding */
+}
+
+.v-input--checkbox {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.v-input__details {
+  display: none;
+  /* Hide hint/details section under checkboxes */
+  min-height: 0px;
+  padding-top: 0px;
 }
 </style>
