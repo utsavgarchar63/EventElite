@@ -8,6 +8,7 @@ const store = useEventStore();
 // Lazy load step components
 const stepComponents: Record<number, any> = {
   1: defineAsyncComponent(() => import('@/components/event/steps/EventType.vue')),
+  2: defineAsyncComponent(() => import('@/components/event/steps/BasicInfo.vue')),
   // ...other steps
 };
 
