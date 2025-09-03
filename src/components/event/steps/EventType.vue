@@ -84,7 +84,7 @@ const eventTypes = ref([
 ])
 
 const selectEvent = (eventName) => {
-     selectedEvent.value = eventName
+     store.formData.eventType = eventName
      store.nextStep()
 }
 </script>
