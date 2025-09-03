@@ -9,7 +9,7 @@
 
                <!-- Create Event Button -->
                <v-col cols="12" sm="6" md="3" class="d-flex justify-center justify-md-end mt-4 mt-md-0">
-                    <v-btn color="primary" class="h-fit" size="large" prepend-icon="mdi-plus" @click="goToAddEvent">
+                    <v-btn color="primary" class="h-fit" size="large" prepend-icon="mdi-plus">
                          Create Event
                     </v-btn>
                </v-col>
@@ -87,10 +87,8 @@ import dollarIcon from "@/assets/images/icons/dollar.svg";
 import grommetIcon from "@/assets/images/icons/grommet.svg";
 import ticketIcon from "@/assets/images/icons/ticket.svg";
 import EventList from "../components/events/EventList.vue";
-import { useRouter } from "vue-router";
 
 const activeTab = ref("upcoming");
-const router = useRouter();
 
 const eventCards = ref([
      { title: "Total Events", value: 0, icon: ticketIcon, avatarColor: "primary" },
@@ -101,10 +99,6 @@ const eventCards = ref([
 const downloadReport = () => {
      console.log("Download report logic here");
      // You can add CSV, Excel, or PDF download logic here
-};
-
-const goToAddEvent = () => {
-     router.push('/admin/events/create');
 };
 
 const fetchEventStats = async () => {

@@ -24,6 +24,24 @@ const MainRoutes = {
             meta: { requiresAuth: true, roles: ['admin'] }
         },
         {
+            path: '/admin/events/create',
+            name: 'Add Events', // make name unique to avoid conflict
+            component: () => import('@/views/pages/CreateEvents.vue'),
+            meta: { requiresAuth: true, roles: ['admin'] }
+        },
+        {
+            path: '/admin/attendees',
+            name: 'Attendees', // make name unique to avoid conflict
+            component: () => import('@/views/pages/Attendees.vue'),
+            meta: { requiresAuth: true, roles: ['admin'] }
+        },
+        {
+            path: '/admin/speakers',
+            name: 'Speakers', // make name unique to avoid conflict
+            component: () => import('@/views/pages/Speakers.vue'),
+            meta: { requiresAuth: true, roles: ['admin'] }
+        },
+        {
             name: 'SuperAdminDashboard',
             path: '/super-admin/dashboard',
             component: () => import('@/views/dashboard/SuperAdminDashboard.vue'),

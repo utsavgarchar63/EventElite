@@ -91,7 +91,7 @@ const handleSubmit = async () => {
         }
     } catch (error: any) {
         console.error("Login failed:", error);
-        snackbar.show(error.response?.data?.message || "Login failed", "success");
+        snackbar.show(error.response?.data?.message || "Login failed", "error");
 
     } finally {
         loading.value = false;
