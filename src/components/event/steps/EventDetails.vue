@@ -18,7 +18,7 @@
                                    transition="scale-transition" offset-y>
                                    <template #activator="{ props }">
                                         <v-text-field v-bind="props" v-model="startDateFormatted"
-                                             placeholder="Select Start Date" variant="outlined" density="compact"
+                                             placeholder="Select Start Date" variant="outlined" 
                                              hide-details readonly append-inner-icon="mdi-calendar" />
                                    </template>
                                    <v-date-picker v-model="startDate" @update:model-value="formatStartDate" />
@@ -32,7 +32,7 @@
                                    transition="scale-transition" offset-y>
                                    <template #activator="{ props }">
                                         <v-text-field v-bind="props" v-model="endDateFormatted"
-                                             placeholder="Select End Date" variant="outlined" density="compact"
+                                             placeholder="Select End Date" variant="outlined" 
                                              hide-details readonly append-inner-icon="mdi-calendar" />
                                    </template>
                                    <v-date-picker v-model="endDate" @update:model-value="formatEndDate" />
@@ -43,14 +43,17 @@
                          <v-col cols="12" md="6" class="pa-0 pr-md-2 mb-3">
                               <v-label>Start Time</v-label>
                               <v-menu v-model="startTimeMenu" :close-on-content-click="false"
-                                   transition="scale-transition" offset-y>
+                                   transition="scale-transition" offset-y max-width="290">
                                    <template #activator="{ props }">
                                         <v-text-field v-bind="props" v-model="startTimeFormatted"
-                                             placeholder="Select Start Time" variant="outlined" density="compact"
-                                             hide-details readonly append-inner-icon="mdi-clock-outline" />
+                                             placeholder="Select Start Time" readonly
+                                             append-inner-icon="mdi-clock-outline" variant="outlined" 
+                                             hide-details />
                                    </template>
-                                   <v-time-picker v-model="startTime" format="ampm"
-                                        @update:model-value="formatStartTime" />
+
+                                   <v-time-picker v-model="startTime" format="ampm" @update:model-value="val => {
+                                        startTimeFormatted = val;
+                                   }" />
                               </v-menu>
                          </v-col>
 
@@ -58,15 +61,20 @@
                          <v-col cols="12" md="6" class="pa-0 pl-md-2 mb-3">
                               <v-label>End Time</v-label>
                               <v-menu v-model="endTimeMenu" :close-on-content-click="false"
-                                   transition="scale-transition" offset-y>
+                                   transition="scale-transition" offset-y max-width="290">
                                    <template #activator="{ props }">
                                         <v-text-field v-bind="props" v-model="endTimeFormatted"
-                                             placeholder="Select End Time" variant="outlined" density="compact"
-                                             hide-details readonly append-inner-icon="mdi-clock-outline" />
+                                             placeholder="Select End Time" readonly
+                                             append-inner-icon="mdi-clock-outline" variant="outlined" 
+                                             hide-details />
                                    </template>
-                                   <v-time-picker v-model="endTime" format="ampm" @update:model-value="formatEndTime" />
+
+                                   <v-time-picker v-model="endTime" format="ampm" @update:model-value="val => {
+                                        endTimeFormatted = val;
+                                   }" />
                               </v-menu>
                          </v-col>
+
 
 
 
@@ -80,7 +88,7 @@
                          <!-- Location -->
                          <v-col cols="12" class="pa-0 mb-3">
                               <v-label>Location</v-label>
-                              <v-textarea v-model="location" placeholder="Enter event location" variant="outlined"
+                              <v-textarea v-model="location" style="border-radius: 8px;" placeholder="Enter event location" variant="outlined"
                                    hide-details="auto" color="primary" />
                          </v-col>
 
@@ -112,16 +120,16 @@ const endTimeMenu = ref(false);
 
 const startDate = ref(null);
 const endDate = ref(null);
-const startTime = ref(null);
-const endTime = ref(null);
+const startTime = ref('');
+const endTime = ref('');
 const venue = ref("");
 const location = ref("");
 
 
 const startDateFormatted = ref("");
 const endDateFormatted = ref("");
-const startTimeFormatted = ref("");
-const endTimeFormatted = ref("");
+const startTimeFormatted = ref('');
+const endTimeFormatted = ref('');
 
 // Formatters
 const formatStartDate = (val) => {
@@ -131,7 +139,7 @@ const formatEndDate = (val) => {
      endDateFormatted.value = new Date(val).toLocaleDateString();
 };
 const formatStartTime = (val) => {
-     startTimeFormatted.value = val; 
+     startTimeFormatted.value = val;
 };
 const formatEndTime = (val) => {
      endTimeFormatted.value = val;

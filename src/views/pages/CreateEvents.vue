@@ -10,6 +10,7 @@ const stepComponents: Record<number, any> = {
   1: defineAsyncComponent(() => import('@/components/event/steps/EventType.vue')),
   2: defineAsyncComponent(() => import('@/components/event/steps/BasicInfo.vue')),
   3: defineAsyncComponent(() => import('@/components/event/steps/EventDetails.vue')),
+  4: defineAsyncComponent(() => import('@/components/event/steps/Speakers.vue')),
   // ...other steps
 };
 

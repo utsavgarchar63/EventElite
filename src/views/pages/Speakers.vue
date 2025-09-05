@@ -16,7 +16,6 @@
           </v-row>
 
           <!-- Tabs for Events -->
-          <!-- Tabs for Events -->
           <div style="margin-top: 20px; background-color: white; width: 100%; padding: 10px; border-radius: 10px;">
                <v-row class="align-center">
 
