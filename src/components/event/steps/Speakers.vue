@@ -9,7 +9,7 @@
                </div>
 
                <v-form @submit.prevent="handleSubmit" class="ms-lg-3">
-                    <v-row v-for="(speaker, index) in speakers" :key="index" class="mb-1">
+                    <v-row v-for="(speaker, index) in store.formData.speakers" :key="index" class="mb-1">
                          <v-col cols="12 pa-0 mb-3">
                               <h4 class="font-weight-bold text-h4">Speaker {{ index + 1 }}</h4>
                          </v-col>
@@ -56,7 +56,7 @@
                          </v-col>
                     </v-row>
 
-                    <v-btn icon color="primary" class="mb-4" @click="addSpeaker">
+                    <v-btn icon color="primary" class="mb-4" @click="store.addSpeaker">
                          <v-icon>mdi-plus</v-icon>
                     </v-btn>
 
@@ -71,24 +71,33 @@
           </div>
      </v-container>
 </template>
-
 <script setup>
+import { useEventStore } from '@/store/eventStore';
 import { ref } from 'vue';
 
-const speakers = ref([
-     {
-          name: '',
-          email: '',
-          phone: '',
-          location: '',
-          startDate: null,
-          endDate: null,
-          startFormatted: '',
-          endFormatted: '',
-          startMenu: false,
-          endMenu: false,
-     },
-]);
+const store = useEventStore();
+
+// Reference speakers directly from the store
+const speakers = ref(store.formData.speakers.length
+     ? store.formData.speakers
+     : [
+          {
+               name: '',
+               email: '',
+               phone: '',
+               location: '',
+               startDate: null,
+               endDate: null,
+               startFormatted: '',
+               endFormatted: '',
+               startMenu: false,
+               endMenu: false,
+          },
+     ]
+);
+
+// keep store updated reactively
+store.formData.speakers = speakers.value;
 
 const addSpeaker = () => {
      speakers.value.push({
@@ -103,7 +112,11 @@ const addSpeaker = () => {
           startMenu: false,
           endMenu: false,
      });
+
+     // sync with store
+     store.formData.speakers = speakers.value;
 };
+
 
 const formatDate = (val, speaker, type) => {
      const formatted = new Date(val).toLocaleString();
@@ -112,25 +125,11 @@ const formatDate = (val, speaker, type) => {
 };
 
 const handleSubmit = () => {
-     console.log('Speakers Data:', speakers.value);
-     // send to store or API
+     store.nextStep();
 };
 
 const handleCancel = () => {
-     speakers.value = [
-          {
-               name: '',
-               email: '',
-               phone: '',
-               location: '',
-               startDate: null,
-               endDate: null,
-               startFormatted: '',
-               endFormatted: '',
-               startMenu: false,
-               endMenu: false,
-          },
-     ];
+     store.resetSpeakers();
 };
 </script>
 

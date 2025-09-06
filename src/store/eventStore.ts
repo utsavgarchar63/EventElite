@@ -5,27 +5,97 @@ export const useEventStore = defineStore('event', {
     currentStep: 1,
     totalSteps: 10,
     formData: {
-      eventType: '',
+      eventType: {},
       basicInfo: {},
       eventDetails: {},
-      speakers: [],
+      speakers: [
+        {
+          name: '',
+          email: '',
+          phone: '',
+          location: '',
+          startDate: null,
+          endDate: null,
+          startFormatted: '',
+          endFormatted: '',
+          startMenu: false,
+          endMenu: false,
+        },
+      ],
       sponsors: [],
       vendors: [],
       organizerInfo: {},
       ticketInfo: {},
       uploadImage: null,
-      finalData: {}
-    }
+      finalData: {},
+    },
   }),
+
   actions: {
     nextStep() {
       if (this.currentStep < this.totalSteps) this.currentStep++;
+      this.saveToLocalStorage();
     },
     prevStep() {
       if (this.currentStep > 1) this.currentStep--;
+      this.saveToLocalStorage();
     },
     goToStep(step: number) {
-      if (step >= 1 && step <= this.totalSteps) this.currentStep = step;
-    }
-  }
+      if (step >= 1 && step <= this.totalSteps) {
+        this.currentStep = step;
+        this.saveToLocalStorage();
+      }
+    },
+
+    addSpeaker() {
+      this.formData.speakers.push({
+        name: '',
+        email: '',
+        phone: '',
+        location: '',
+        startDate: null,
+        endDate: null,
+        startFormatted: '',
+        endFormatted: '',
+        startMenu: false,
+        endMenu: false,
+      });
+      this.saveToLocalStorage();
+    },
+    resetSpeakers() {
+      this.formData.speakers = [
+        {
+          name: '',
+          email: '',
+          phone: '',
+          location: '',
+          startDate: null,
+          endDate: null,
+          startFormatted: '',
+          endFormatted: '',
+          startMenu: false,
+          endMenu: false,
+        },
+      ];
+      this.saveToLocalStorage();
+    },
+
+    // 🔹 Save state to localStorage
+    saveToLocalStorage() {
+      localStorage.setItem('eventStore', JSON.stringify(this.$state));
+    },
+
+    // 🔹 Load state from localStorage
+    loadFromLocalStorage() {
+      const data = localStorage.getItem('eventStore');
+      if (data) {
+        this.$patch(JSON.parse(data));
+      }
+    },
+
+    resetAll() {
+      localStorage.removeItem('eventStore');
+      this.$reset();
+    },
+  },
 });
