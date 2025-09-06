@@ -80,10 +80,10 @@
      }
 }
 </style>
-
 <script setup>
 import { ref } from "vue";
 import { useEventStore } from "@/store/eventStore";
+import api from "@/plugins/axios";
 
 const store = useEventStore();
 
@@ -121,18 +121,34 @@ const validateForm = () => {
      return valid;
 };
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
      if (!validateForm()) return;
 
-     // Save to store or API
-     store.formData.basicInfo = {
-          name: eventName.value,
-          type: eventType.value,
-          description: eventDescription.value,
-          addons: addons.value,
-     }
+     try {
+          const response = await api.post('/events/basic-info',
+               {
+                    event_id: store.formData.eventType.id,
+                    event_name: eventName.value,
+                    event_type: eventType.value,
+                    description: eventDescription.value,
+                    has_speaker: addons.value.speakers,
+                    has_vendor: addons.value.vendors,
+                    has_sponsor: addons.value.sponsors,
+               }
+          );
 
-     store.nextStep();
+          if (response.data.status) {
+               // Save response in store
+               store.formData.basicInfo = response.data.data;
+
+               // Go to next step
+               store.nextStep();
+          } else {
+               console.error("API Error:", response.data.message);
+          }
+     } catch (error) {
+          console.error("Request failed:", error);
+     }
 };
 
 const handleCancel = () => {
@@ -140,6 +156,6 @@ const handleCancel = () => {
      eventType.value = "";
      eventDescription.value = "";
      addons.value = { speakers: false, sponsors: false, vendors: false };
-     store.prevStep()
+     store.prevStep();
 };
 </script>

@@ -18,8 +18,8 @@
                                    transition="scale-transition" offset-y>
                                    <template #activator="{ props }">
                                         <v-text-field v-bind="props" v-model="startDateFormatted"
-                                             placeholder="Select Start Date" variant="outlined" 
-                                             hide-details readonly append-inner-icon="mdi-calendar" />
+                                             placeholder="Select Start Date" variant="outlined" hide-details readonly
+                                             append-inner-icon="mdi-calendar" />
                                    </template>
                                    <v-date-picker v-model="startDate" @update:model-value="formatStartDate" />
                               </v-menu>
@@ -32,8 +32,8 @@
                                    transition="scale-transition" offset-y>
                                    <template #activator="{ props }">
                                         <v-text-field v-bind="props" v-model="endDateFormatted"
-                                             placeholder="Select End Date" variant="outlined" 
-                                             hide-details readonly append-inner-icon="mdi-calendar" />
+                                             placeholder="Select End Date" variant="outlined" hide-details readonly
+                                             append-inner-icon="mdi-calendar" />
                                    </template>
                                    <v-date-picker v-model="endDate" @update:model-value="formatEndDate" />
                               </v-menu>
@@ -47,13 +47,11 @@
                                    <template #activator="{ props }">
                                         <v-text-field v-bind="props" v-model="startTimeFormatted"
                                              placeholder="Select Start Time" readonly
-                                             append-inner-icon="mdi-clock-outline" variant="outlined" 
-                                             hide-details />
+                                             append-inner-icon="mdi-clock-outline" variant="outlined" hide-details />
                                    </template>
 
-                                   <v-time-picker v-model="startTime" format="ampm" @update:model-value="val => {
-                                        startTimeFormatted = val;
-                                   }" />
+                                   <v-time-picker v-model="startTime" format="24hr"
+                                        @update:model-value="formatStartTime" />
                               </v-menu>
                          </v-col>
 
@@ -65,15 +63,13 @@
                                    <template #activator="{ props }">
                                         <v-text-field v-bind="props" v-model="endTimeFormatted"
                                              placeholder="Select End Time" readonly
-                                             append-inner-icon="mdi-clock-outline" variant="outlined" 
-                                             hide-details />
+                                             append-inner-icon="mdi-clock-outline" variant="outlined" hide-details />
                                    </template>
 
-                                   <v-time-picker v-model="endTime" format="ampm" @update:model-value="val => {
-                                        endTimeFormatted = val;
-                                   }" />
+                                   <v-time-picker v-model="endTime" format="24hr" @update:model-value="formatEndTime" />
                               </v-menu>
                          </v-col>
+
 
 
 
@@ -88,8 +84,9 @@
                          <!-- Location -->
                          <v-col cols="12" class="pa-0 mb-3">
                               <v-label>Location</v-label>
-                              <v-textarea v-model="location" style="border-radius: 8px;" placeholder="Enter event location" variant="outlined"
-                                   hide-details="auto" color="primary" />
+                              <v-textarea v-model="location" style="border-radius: 8px;"
+                                   placeholder="Enter event location" variant="outlined" hide-details="auto"
+                                   color="primary" />
                          </v-col>
 
                          <!-- Buttons -->
@@ -106,10 +103,10 @@
           </div>
      </v-container>
 </template>
-
 <script setup>
 import { ref } from "vue";
 import { useEventStore } from "@/store/eventStore";
+import api from "@/plugins/axios";
 
 const store = useEventStore();
 
@@ -120,16 +117,15 @@ const endTimeMenu = ref(false);
 
 const startDate = ref(null);
 const endDate = ref(null);
-const startTime = ref('');
-const endTime = ref('');
+const startTime = ref(null);
+const endTime = ref(null);
 const venue = ref("");
 const location = ref("");
 
-
 const startDateFormatted = ref("");
 const endDateFormatted = ref("");
-const startTimeFormatted = ref('');
-const endTimeFormatted = ref('');
+const startTimeFormatted = ref("");
+const endTimeFormatted = ref("");
 
 // Formatters
 const formatStartDate = (val) => {
@@ -137,26 +133,61 @@ const formatStartDate = (val) => {
 };
 const formatEndDate = (val) => {
      endDateFormatted.value = new Date(val).toLocaleDateString();
+}; const formatStartTime = (val) => {
+     if (val) {
+          const [hour, minute] = val.split(":");
+          const d = new Date();
+          d.setHours(hour, minute);
+          startTimeFormatted.value = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+     }
 };
-const formatStartTime = (val) => {
-     startTimeFormatted.value = val;
-};
+
 const formatEndTime = (val) => {
-     endTimeFormatted.value = val;
+     if (val) {
+          const [hour, minute] = val.split(":");
+          const d = new Date();
+          d.setHours(hour, minute);
+          endTimeFormatted.value = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+     }
 };
 
-const handleSubmit = () => {
-     // Save to store or API
-     store.formData.eventDetails = {
-          startDate: startDate.value,
-          endDate: endDate.value,
-          startTime: startTime.value,
-          endTime: endTime.value,
-          venue: venue.value,
-          location: location.value,
-     };
+const handleSubmit = async () => {
+     try {
+          // Build datetime string in `YYYY-MM-DD HH:mm:ss`
+          const formatDateTime = (date, time) => {
+               const d = new Date(date);
+               const [hours, minutes] = time.split(":");
+               d.setHours(hours, minutes, 0, 0);
+               return d.toISOString().slice(0, 19).replace("T", " ");
+          };
 
-     store.nextStep();
+          const payload = {
+               event_id: store.formData.eventType.id,
+               start_datetime: formatDateTime(startDate.value, startTime.value),
+               end_datetime: formatDateTime(endDate.value, endTime.value),
+               venue: venue.value,
+               venue_address: location.value,
+          };
+
+          const res = await api.post(
+               "/events/details",
+               payload
+          );
+
+          if (res.data.status) {
+               console.log("✅ Saved:", res.data);
+
+               // Save to store
+               store.formData.eventDetails = payload;
+
+               // Next step
+               store.nextStep();
+          } else {
+               console.error("❌ Error:", res.data.message);
+          }
+     } catch (err) {
+          console.error("API Error:", err);
+     }
 };
 
 const handleCancel = () => {
@@ -169,17 +200,3 @@ const handleCancel = () => {
      store.prevStep();
 };
 </script>
-
-<style scoped>
-.form-wrapper {
-     width: 100%;
-     max-width: 500px;
-}
-
-/* On small screens */
-@media (max-width: 600px) {
-     .form-wrapper {
-          max-width: 100% !important;
-     }
-}
-</style>
