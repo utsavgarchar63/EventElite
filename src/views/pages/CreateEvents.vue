@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent } from 'vue';
+import { computed, defineAsyncComponent, onUnmounted } from 'vue';
 import StepProgress from '@/components/event/StepProgress.vue';
 import { useEventStore } from '@/store/eventStore';
+import { useSnackbarStore } from '@/store/snackbar';
 
 const store = useEventStore();
+const snackbar = useSnackbarStore();
 
 // Lazy load step components
 const stepComponents: Record<number, any> = {
@@ -19,6 +21,9 @@ const currentComponent = computed(() => stepComponents[store.currentStep]);
 function submitEvent() {
   console.log('Event Data:', store.formData);
 }
+onUnmounted(() => {
+  snackbar.clear();
+});
 </script>
 
 <template>

@@ -12,5 +12,11 @@ export const useSnackbarStore = defineStore("snackbar", () => {
     snackbar.value = true;
   }
 
-  return { snackbar, message, color, show };
+  function clear() {
+    snackbar.value = false;
+    message.value = "";
+    color.value = "error";
+  }
+
+  return { snackbar, message, color, show, clear };
 });
