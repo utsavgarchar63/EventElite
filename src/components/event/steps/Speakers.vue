@@ -56,9 +56,13 @@
                          </v-col>
                     </v-row>
 
-                    <v-btn icon color="primary" class="mb-4" @click="store.addSpeaker">
-                         <v-icon>mdi-plus</v-icon>
-                    </v-btn>
+                    <div @click="store.addSpeaker" class="d-flex align-center mb-4" style="cursor: pointer;">
+                         <v-btn icon color="primary" class="mr-2">
+                              <v-icon>mdi-plus</v-icon>
+                         </v-btn>
+                         <h4 class="text-primary mb-0">Add More Speakers</h4>
+                    </div>
+
 
                     <v-row class="mt-4">
                          <v-col cols="12" class="d-flex justify-end">
@@ -74,14 +78,17 @@
 <script setup>
 import { useEventStore } from '@/store/eventStore';
 import { ref } from 'vue';
+import axios from 'axios';
+import api from '@/plugins/axios';
 
 const store = useEventStore();
 
-// Reference speakers directly from the store
+// Reference speakers from store
 const speakers = ref(store.formData.speakers.length
      ? store.formData.speakers
      : [
           {
+               id: null,
                name: '',
                email: '',
                phone: '',
@@ -96,11 +103,12 @@ const speakers = ref(store.formData.speakers.length
      ]
 );
 
-// keep store updated reactively
 store.formData.speakers = speakers.value;
 
+// Add new speaker row
 const addSpeaker = () => {
      speakers.value.push({
+          id: null,
           name: '',
           email: '',
           phone: '',
@@ -112,26 +120,58 @@ const addSpeaker = () => {
           startMenu: false,
           endMenu: false,
      });
-
-     // sync with store
      store.formData.speakers = speakers.value;
 };
 
-
+// Format date for display
 const formatDate = (val, speaker, type) => {
      const formatted = new Date(val).toLocaleString();
      if (type === 'start') speaker.startFormatted = formatted;
      else speaker.endFormatted = formatted;
 };
 
-const handleSubmit = () => {
-     store.nextStep();
+// Convert JS date → API format (YYYY-MM-DD HH:mm:ss)
+const formatForApi = (date) => {
+     if (!date) return null;
+     const d = new Date(date);
+     const pad = (n) => (n < 10 ? '0' + n : n);
+     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
+          d.getHours()
+     )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
+
+// Submit speakers to API
+const handleSubmit = async () => {
+     try {
+          const payload = {
+               event_id: store.formData.eventType.id,
+               speakers: speakers.value.map((s) => ({
+                    id: s.id || null,
+                    name: s.name,
+                    email: s.email,
+                    phone: s.phone,
+                    location: s.location,
+                    start_datetime: formatForApi(s.startDate),
+                    end_datetime: formatForApi(s.endDate),
+               })),
+          };
+
+          const res = await api.post('/events/speakers', payload);
+
+          if (res.data.status) {
+               store.formData.speakers = res.data.data;
+               store.nextStep();
+          }
+     } catch (error) {
+          console.error("Error saving speakers:", error.response?.data || error);
+     }
 };
 
 const handleCancel = () => {
      store.resetSpeakers();
 };
 </script>
+
 
 <style scoped>
 .form-wrapper {

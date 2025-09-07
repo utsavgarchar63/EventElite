@@ -70,10 +70,6 @@
                               </v-menu>
                          </v-col>
 
-
-
-
-
                          <!-- Venue -->
                          <v-col cols="12" class="pa-0 mb-3">
                               <v-label>Venue</v-label>
@@ -107,7 +103,9 @@
 import { ref } from "vue";
 import { useEventStore } from "@/store/eventStore";
 import api from "@/plugins/axios";
+import { useSnackbarStore } from "@/store/snackbar";
 
+const snackbar = useSnackbarStore()
 const store = useEventStore();
 
 const startDateMenu = ref(false);
@@ -128,6 +126,27 @@ const startTimeFormatted = ref("");
 const endTimeFormatted = ref("");
 
 // Formatters
+
+const handleBackendErrors = (error) => {
+     if (error.response && error.response.data && error.response.data.errors) {
+          const backendErrors = error.response.data.errors;
+
+          // Map backend errors to the snackbar message
+          const errorMessages = [];
+          for (const key in backendErrors) {
+               if (backendErrors[key] && backendErrors[key].length) {
+                    errorMessages.push(...backendErrors[key]);
+               }
+          }
+
+          // Show all errors in a single snackbar
+          snackbar.show(errorMessages.join(", "), "error");
+     } else {
+          snackbar.show("Something went wrong. Please try again.", "error");
+     }
+};
+
+
 const formatStartDate = (val) => {
      startDateFormatted.value = new Date(val).toLocaleDateString();
 };
@@ -169,23 +188,18 @@ const handleSubmit = async () => {
                venue_address: location.value,
           };
 
-          const res = await api.post(
-               "/events/details",
-               payload
-          );
+          const res = await api.post("/events/details", payload);
 
           if (res.data.status) {
                console.log("✅ Saved:", res.data);
-
-               // Save to store
                store.formData.eventDetails = payload;
-
-               // Next step
                store.nextStep();
           } else {
+               snackbar.show(res.data.message || "Failed to save event details", "error");
                console.error("❌ Error:", res.data.message);
           }
      } catch (err) {
+          handleBackendErrors(err); // ✅ Use centralized error handler
           console.error("API Error:", err);
      }
 };

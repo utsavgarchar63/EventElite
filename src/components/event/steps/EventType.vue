@@ -14,23 +14,21 @@
     <v-row v-else>
       <v-col cols="12" sm="6" md="4" v-for="(event, index) in eventTypes" :key="index">
         <v-card :class="['event-card', { 'selected-card': selectedEvent === event.title }]">
-          <v-img :src="event.image || defaultImage" height="140" class="mb-4"
-                 style="border-radius: 8px; margin: 15px;" cover />
+          <v-img :src="event.image || defaultImage" height="140" class="mb-4" style="border-radius: 8px; margin: 15px;"
+            cover />
           <v-card-title style="font-weight:700; font-size:18px;">
             {{ event.title }}
           </v-card-title>
           <v-card-subtitle class="mb-2">{{ event.sub_title }}</v-card-subtitle>
           <v-list density="compact">
-            <v-list-item v-for="(desc, index) in event.description.split(',')" :key="index"
-                         class="feature-item">
+            <v-list-item v-for="(desc, index) in event.description.split(',')" :key="index" class="feature-item">
               {{ desc.trim() }}
             </v-list-item>
           </v-list>
 
           <v-card-actions>
-            <v-btn :loading="selecting === event.id" color="primary" size="large" variant="outlined" block class="event-btn"
-                   :class="{ 'selected-btn': selectedEvent === event.title }"
-                   @click="selectEvent(event)">
+            <v-btn :loading="selecting === event.id" color="primary" size="large" variant="outlined" block
+              class="event-btn" :class="{ 'selected-btn': selectedEvent === event.title }" @click="selectEvent(event)">
               <span class="btn-text">
                 Get Started
               </span>
@@ -112,9 +110,7 @@ const selectEvent = async (eventObj) => {
     });
 
     if (res.data.status) {
-      snackbar.show(res.data.message || "Subscription selected successfully!", "success");
-
-      // Save selection in store & localStorage
+      // Save selection in store & localStorage 
       store.formData.eventType = eventObj;
       store.formData.subscription = res.data.data.Subscription;
       store.saveToLocalStorage();
@@ -125,7 +121,12 @@ const selectEvent = async (eventObj) => {
     }
   } catch (err) {
     console.error("API error:", err);
-    snackbar.show(err.response?.data?.message || "API call failed", "error");
+    if (err.response?.data?.errors) {
+      const firstError = Object.values(err.response.data.errors)[0][0];
+      snackbar.show(firstError, "error");
+    } else {
+      snackbar.show(err.response?.data?.message || "API call failed", "error");
+    }
   } finally {
     selecting.value = null; // stop button loading
   }

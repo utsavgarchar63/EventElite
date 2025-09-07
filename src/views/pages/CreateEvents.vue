@@ -54,5 +54,20 @@ onUnmounted(() => {
         </div>
       </v-col>
     </v-row>
+    <v-snackbar v-model="useSnackbarStore().snackbar" :color="useSnackbarStore().color" timeout="4000"
+      location="top right" transition="slide-x-reverse-transition" class="custom-snackbar">
+      <div class="snackbar-content">
+        <v-icon v-if="useSnackbarStore().color === 'success'" size="22" class="me-1" color="white">
+          mdi-check-circle
+        </v-icon>
+        <v-icon v-else-if="useSnackbarStore().color === 'error'" size="22" class="me-1" color="white">
+          mdi-alert-circle
+        </v-icon>
+        <v-icon v-else size="22" color="white" class="me-1">
+          mdi-information
+        </v-icon>
+        <span class="snackbar-text">{{ useSnackbarStore().message }}</span>
+      </div>
+    </v-snackbar>
   </v-container>
 </template>
