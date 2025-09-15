@@ -127,7 +127,8 @@ const handleSubmit = async () => {
      try {
           const response = await api.post('/events/basic-info',
                {
-                    event_id: store.formData.eventType.id,
+                    // event_id: store.formData.eventType.id,
+                    event_id: 1,
                     event_name: eventName.value,
                     event_type: eventType.value,
                     description: eventDescription.value,
