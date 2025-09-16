@@ -36,7 +36,7 @@ const allSteps = [
     { id: 7, title: 'Organizer Info', key: 'organizerInfo' },
     { id: 8, title: 'Ticket Info', key: 'ticketInfo' },
     { id: 9, title: 'Upload Image', key: 'uploadImage' },
-    { id: 10, title: 'Create Event', key: 'createEvent' }
+    { id: 10, title: 'Payment Summary', key: 'paymentSummary' }
 ];
 
 // 🔹 Dynamically filter based on basicInfo

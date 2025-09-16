@@ -1,4 +1,5 @@
-<script setup lang="ts">
+<script setup>
+// script setup
 import { computed, defineAsyncComponent, onUnmounted } from 'vue';
 import StepProgress from '@/components/event/StepProgress.vue';
 import { useEventStore } from '@/store/eventStore';
@@ -7,23 +8,57 @@ import { useSnackbarStore } from '@/store/snackbar';
 const store = useEventStore();
 const snackbar = useSnackbarStore();
 
-// Lazy load step components
-const stepComponents: Record<number, any> = {
-    1: defineAsyncComponent(() => import('@/components/event/steps/EventType.vue')),
-    2: defineAsyncComponent(() => import('@/components/event/steps/BasicInfo.vue')),
-    3: defineAsyncComponent(() => import('@/components/event/steps/EventDetails.vue')),
-    4: defineAsyncComponent(() => import('@/components/event/steps/Speakers.vue')),
-    5: defineAsyncComponent(() => import('@/components/event/steps/Sponsors.vue')),
-    6: defineAsyncComponent(() => import('@/components/event/steps/Vendors.vue')),
-    7: defineAsyncComponent(() => import('@/components/event/steps/OrganizerInfo.vue'))
-    // ...other steps
+// Lazy load step components by key instead of ID
+const stepComponents = {
+    eventType: defineAsyncComponent(() => import('@/components/event/steps/EventType.vue')),
+    basicInfo: defineAsyncComponent(() => import('@/components/event/steps/BasicInfo.vue')),
+    eventDetails: defineAsyncComponent(() => import('@/components/event/steps/EventDetails.vue')),
+    speakers: defineAsyncComponent(() => import('@/components/event/steps/Speakers.vue')),
+    sponsors: defineAsyncComponent(() => import('@/components/event/steps/Sponsors.vue')),
+    vendors: defineAsyncComponent(() => import('@/components/event/steps/Vendors.vue')),
+    organizerInfo: defineAsyncComponent(() => import('@/components/event/steps/OrganizerInfo.vue')),
+    ticketInfo: defineAsyncComponent(() => import('@/components/event/steps/TicketInfo.vue')),
+    uploadImage: defineAsyncComponent(() => import('@/components/event/steps/UploadImage.vue')),
+    paymentSummary: defineAsyncComponent(() => import('@/components/event/steps/PaymentSummary.vue'))
 };
 
-const currentComponent = computed(() => stepComponents[store.currentStep]);
+// Get the filtered steps from store
+const steps = computed(() => {
+    const { basicInfo } = store.formData;
+    return [
+        { id: 1, title: 'Event Type', key: 'eventType' },
+        { id: 2, title: 'Basic Info', key: 'basicInfo' },
+        { id: 3, title: 'Event Details', key: 'eventDetails' },
+        { id: 4, title: 'Speakers', key: 'speakers', condition: 'has_speaker' },
+        { id: 5, title: 'Sponsors', key: 'sponsors', condition: 'has_sponsor' },
+        { id: 6, title: 'Vendors', key: 'vendors', condition: 'has_vendor' },
+        { id: 7, title: 'Organizer Info', key: 'organizerInfo' },
+        { id: 8, title: 'Ticket Info', key: 'ticketInfo' },
+        { id: 9, title: 'Upload Image', key: 'uploadImage' },
+        { id: 10, title: 'Payment Summary', key: 'paymentSummary' }
+    ]
+        .filter((step) => {
+            if (step.condition === 'has_speaker') return basicInfo?.has_speaker;
+            if (step.condition === 'has_sponsor') return basicInfo?.has_sponsor;
+            if (step.condition === 'has_vendor') return basicInfo?.has_vendor;
+            return true;
+        })
+        .map((step, index) => ({
+            ...step,
+            id: index + 1
+        }));
+});
+
+// Dynamically pick the active step’s component key
+const currentComponent = computed(() => {
+    const currentStepObj = steps.value.find((s) => s.id === store.currentStep);
+    return currentStepObj ? stepComponents[currentStepObj.key] : null;
+});
 
 function submitEvent() {
     console.log('Event Data:', store.formData);
 }
+
 onUnmounted(() => {
     snackbar.clear();
 });

@@ -77,7 +77,7 @@
 
                     <!-- Buttons -->
                     <v-col cols="12" class="pa-0 mt-4 pl-2 pl-lg-3 mb-3 d-flex justify-end">
-                        <v-btn color="primary" size="large" variant="outlined" class="mr-2" @click="handleCancel"> Cancel </v-btn>
+                        <v-btn color="primary" size="large" variant="outlined" class="mr-2" @click="handleGoBack"> Go Back </v-btn>
                         <v-btn type="submit" color="primary" size="large"> Save & Next </v-btn>
                     </v-col>
                 </v-row>
@@ -202,7 +202,7 @@ const handleSubmit = async () => {
 };
 
 // cancel
-const handleCancel = () => {
+const handleGoBack = () => {
     organizerName.value = '';
     phone.value = '';
     email.value = '';

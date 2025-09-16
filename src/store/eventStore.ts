@@ -1,101 +1,101 @@
 import { defineStore } from 'pinia';
 
 export const useEventStore = defineStore('event', {
-  state: () => ({
-    currentStep: 1,
-    totalSteps: 10,
-    formData: {
-      eventType: {},
-      basicInfo: {},
-      eventDetails: {},
-      speakers: [
-        {
-          name: '',
-          email: '',
-          phone: '',
-          location: '',
-          startDate: null,
-          endDate: null,
-          startFormatted: '',
-          endFormatted: '',
-          startMenu: false,
-          endMenu: false,
+    state: () => ({
+        currentStep: 1,
+        totalSteps: 10,
+        formData: {
+            eventType: {},
+            basicInfo: {},
+            eventDetails: {},
+            speakers: [
+                {
+                    name: '',
+                    email: '',
+                    phone: '',
+                    location: '',
+                    startDate: null,
+                    endDate: null,
+                    startFormatted: '',
+                    endFormatted: '',
+                    startMenu: false,
+                    endMenu: false
+                }
+            ],
+            sponsors: [],
+            vendors: [],
+            organizerInfo: {},
+            ticketInfo: {},
+            uploadImage: null,
+            finalData: {}
+        }
+    }),
+
+    actions: {
+        nextStep() {
+            if (this.currentStep < this.totalSteps) this.currentStep++;
+            // this.saveToLocalStorage();
         },
-      ],
-      sponsors: [],
-      vendors: [],
-      organizerInfo: {},
-      ticketInfo: {},
-      uploadImage: null,
-      finalData: {},
-    },
-  }),
-
-  actions: {
-    nextStep() {
-      if (this.currentStep < this.totalSteps) this.currentStep++;
-      this.saveToLocalStorage();
-    },
-    prevStep() {
-      if (this.currentStep > 1) this.currentStep--;
-      this.saveToLocalStorage();
-    },
-    goToStep(step: number) {
-      if (step >= 1 && step <= this.totalSteps) {
-        this.currentStep = step;
-        this.saveToLocalStorage();
-      }
-    },
-
-    addSpeaker() {
-      this.formData.speakers.push({
-        name: '',
-        email: '',
-        phone: '',
-        location: '',
-        startDate: null,
-        endDate: null,
-        startFormatted: '',
-        endFormatted: '',
-        startMenu: false,
-        endMenu: false,
-      });
-      this.saveToLocalStorage();
-    },
-    resetSpeakers() {
-      this.formData.speakers = [
-        {
-          name: '',
-          email: '',
-          phone: '',
-          location: '',
-          startDate: null,
-          endDate: null,
-          startFormatted: '',
-          endFormatted: '',
-          startMenu: false,
-          endMenu: false,
+        prevStep() {
+            if (this.currentStep > 1) this.currentStep--;
+            // this.saveToLocalStorage();
         },
-      ];
-      this.saveToLocalStorage();
-    },
+        goToStep(step: number) {
+            if (step >= 1 && step <= this.totalSteps) {
+                this.currentStep = step;
+                // this.saveToLocalStorage();
+            }
+        },
 
-    // 🔹 Save state to localStorage
-    saveToLocalStorage() {
-      localStorage.setItem('eventStore', JSON.stringify(this.$state));
-    },
+        addSpeaker() {
+            this.formData.speakers.push({
+                name: '',
+                email: '',
+                phone: '',
+                location: '',
+                startDate: null,
+                endDate: null,
+                startFormatted: '',
+                endFormatted: '',
+                startMenu: false,
+                endMenu: false
+            });
+            // this.saveToLocalStorage();
+        },
+        resetSpeakers() {
+            this.formData.speakers = [
+                {
+                    name: '',
+                    email: '',
+                    phone: '',
+                    location: '',
+                    startDate: null,
+                    endDate: null,
+                    startFormatted: '',
+                    endFormatted: '',
+                    startMenu: false,
+                    endMenu: false
+                }
+            ];
+            // this.saveToLocalStorage();
+        },
 
-    // 🔹 Load state from localStorage
-    loadFromLocalStorage() {
-      const data = localStorage.getItem('eventStore');
-      if (data) {
-        this.$patch(JSON.parse(data));
-      }
-    },
+        // 🔹 Save state to localStorage
+        // saveToLocalStorage() {
+        //   localStorage.setItem('eventStore', JSON.stringify(this.$state));
+        // },
 
-    resetAll() {
-      localStorage.removeItem('eventStore');
-      this.$reset();
-    },
-  },
+        // // 🔹 Load state from localStorage
+        // loadFromLocalStorage() {
+        //   const data = localStorage.getItem('eventStore');
+        //   if (data) {
+        //     this.$patch(JSON.parse(data));
+        //   }
+        // },
+
+        resetAll() {
+            localStorage.removeItem('eventStore');
+            this.$reset();
+        }
+    }
 });

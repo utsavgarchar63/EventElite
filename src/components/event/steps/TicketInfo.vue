@@ -1,199 +1,155 @@
 <template>
     <v-container class="d-flex justify-center align-center" style="min-height: 100vh">
         <div class="form-wrapper">
+            <!-- Heading -->
             <div class="mb-8">
-                <h4 class="text-h4 font-weight-bold">Organizer Information</h4>
-                <p class="mt-1" style="color: #525454">Please enter organizer details below</p>
+                <h4 class="text-h2 font-weight-bold">Ticket Information</h4>
+                <p class="mt-1" style="color: #525454">Please provide ticket details below.</p>
             </div>
 
-            <v-form @submit.prevent="handleSubmit">
-                <v-row>
-                    <!-- Organizer Name -->
-                    <v-col cols="12" class="pa-0 pl-2 pl-lg-3 mb-3">
-                        <v-label>Organizer Name</v-label>
-                        <v-text-field
-                            v-model="organizerName"
-                            variant="outlined"
-                            placeholder="Enter organizer name"
-                            hide-details="auto"
-                            color="primary"
-                            :error="!!errors.organizerName"
-                            :error-messages="errors.organizerName"
-                        />
-                    </v-col>
+            <v-form @submit.prevent="handleSubmit" class="ms-lg-3">
+                <!-- Ticket Type Dropdown -->
+                <v-label>Ticket Type</v-label>
+                <v-select
+                    v-model="ticketType"
+                    :items="['Paid Ticket', 'Free Ticket']"
+                    variant="outlined"
+                    placeholder="Select Ticket Type"
+                />
 
-                    <!-- Phone (Country Code + Number) -->
-                    <v-col cols="12" class="pa-0 pl-2 pl-lg-3 mb-3 d-flex">
-                        <div style="width: 100px; margin-right: 8px">
-                            <v-label>Code</v-label>
-                            <v-select
-                                v-model="countryCode"
-                                :items="countryCodes"
-                                variant="outlined"
-                                hide-details="auto"
-                                color="primary"
-                                placeholder="+91"
-                            />
-                        </div>
-                        <div style="flex: 1">
-                            <v-label>Phone Number</v-label>
+                <!-- If Paid Ticket is selected show ticket fields -->
+                <template v-if="ticketType === 'Paid Ticket'">
+                    <v-row v-for="(ticket, index) in tickets" :key="index" class="ps-5 mt-3 mb-4">
+                        <v-col cols="12" class="pa-0 mb-2">
+                            <h4 class="font-weight-bold text-h4">Ticket {{ index + 1 }}</h4>
+                        </v-col>
+
+                        <v-col cols="12" md="6" class="pa-0 pe-lg-2">
+                            <v-label>Ticket Name</v-label>
+                            <v-text-field v-model="ticket.name" placeholder="Enter ticket name" variant="outlined" />
+                        </v-col>
+
+                        <v-col cols="12" md="6" class="pa-0 ps-lg-2">
+                            <v-label>Description</v-label>
+                            <v-text-field v-model="ticket.description" placeholder="Enter ticket description" variant="outlined" />
+                        </v-col>
+
+                        <v-col cols="12" md="6" class="pa-0 pe-lg-2">
+                            <v-label>Price ($)</v-label>
                             <v-text-field
-                                v-model="phoneNumber"
+                                v-model="ticket.price"
+                                placeholder="Enter ticket price"
                                 variant="outlined"
-                                placeholder="Enter phone number"
-                                hide-details="auto"
-                                color="primary"
-                                :error="!!errors.phoneNumber"
-                                :error-messages="errors.phoneNumber"
+                                @input="ticket.price = ticket.price.replace(/[^0-9.]/g, '')"
                             />
-                        </div>
-                    </v-col>
+                        </v-col>
 
-                    <!-- Email -->
-                    <v-col cols="12" class="pa-0 pl-2 pl-lg-3 mb-3">
-                        <v-label>Email</v-label>
-                        <v-text-field
-                            v-model="email"
-                            variant="outlined"
-                            placeholder="Enter email"
-                            hide-details="auto"
-                            color="primary"
-                            :error="!!errors.email"
-                            :error-messages="errors.email"
-                        />
-                    </v-col>
+                        <v-col cols="12" md="6" class="pa-0 ps-lg-2">
+                            <v-label>Capacity</v-label>
+                            <v-text-field
+                                v-model="ticket.capacity"
+                                placeholder="Enter ticket type capacity"
+                                variant="outlined"
+                                @input="ticket.capacity = ticket.capacity.replace(/[^0-9]/g, '')"
+                            />
+                        </v-col>
+                    </v-row>
 
-                    <!-- Description -->
-                    <v-col cols="12" class="pa-0 pl-2 pl-lg-3 mb-3">
-                        <v-label>Description</v-label>
-                        <v-textarea
-                            v-model="description"
-                            variant="outlined"
-                            placeholder="Enter description"
-                            hide-details="auto"
-                            color="primary"
-                        />
-                    </v-col>
+                    <!-- Add more ticket button -->
+                    <div @click="addTicket" class="d-flex align-center mb-4" style="cursor: pointer">
+                        <v-icon color="primary" class="mr-2">mdi-plus</v-icon>
+                        <h4 class="text-primary mb-0">Add More</h4>
+                    </div>
 
-                    <!-- Buttons -->
-                    <v-col cols="12" class="pa-0 mt-4 pl-2 pl-lg-3 mb-3 d-flex justify-end">
-                        <v-btn color="primary" size="large" variant="outlined" class="mr-2" @click="handleCancel"> Cancel </v-btn>
-                        <v-btn type="submit" color="primary" size="large"> Save & Next </v-btn>
+                    <!-- Convenience Fee Checkbox -->
+                    <v-checkbox v-model="convenienceFeeEnabled" label="Convenience Fee" />
+
+                    <!-- Convenience Fee Input -->
+                    <v-text-field
+                        v-if="convenienceFeeEnabled"
+                        v-model="convenienceFee"
+                        placeholder="Enter convenience fee"
+                        variant="outlined"
+                        @input="convenienceFee = convenienceFee.replace(/[^0-9.]/g, '')"
+                    />
+                </template>
+
+                <!-- Buttons -->
+                <v-row class="mt-4">
+                    <v-col cols="12" class="d-flex justify-end">
+                        <v-btn color="primary" size="large" variant="outlined" class="mr-2" @click="handleCancel">Go Back</v-btn>
+                        <v-btn type="submit" color="primary" size="large">Save & Next</v-btn>
                     </v-col>
                 </v-row>
             </v-form>
         </div>
     </v-container>
 </template>
-
-<style scoped>
-.form-wrapper {
-    width: 100%;
-    max-width: 500px;
-    /* On laptop+ screens */
-}
-
-/* On small screens, take full width */
-@media (max-width: 600px) {
-    .form-wrapper {
-        max-width: 100% !important;
-    }
-}
-</style>
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
+import api from '@/plugins/axios';
 import { useEventStore } from '@/store/eventStore';
 import { useSnackbarStore } from '@/store/snackbar';
-import api from '@/plugins/axios';
 
 const store = useEventStore();
 const snackbar = useSnackbarStore();
 
-// fields
-const organizerName = ref('');
-const countryCode = ref('+91');
-const phoneNumber = ref('');
-const email = ref('');
-const description = ref('');
+// Default ticket type
+const ticketType = ref('Paid Ticket');
 
-const countryCodes = ['+91', '+1', '+44', '+61', '+81'];
-
-const errors = ref({
-    name: '',
-    phone: '',
-    email: '',
-    description: ''
-});
-
-// Prefill if data already exists
-onMounted(() => {
-    if (store.formData.organizerInfo) {
-        const org = store.formData.organizerInfo;
-
-        organizerName.value = org.name || '';
-        email.value = org.email || '';
-        description.value = org.description || '';
-
-        if (org.phone && org.phone.includes('-')) {
-            const [code, num] = org.phone.split('-');
-            countryCode.value = code;
-            phoneNumber.value = num; // updated
-        } else {
-            phoneNumber.value = org.phone || '';
-        }
+// Ticket array (user can add multiple tickets)
+const tickets = ref([
+    {
+        name: '',
+        description: '',
+        price: '',
+        capacity: '',
+        isFree: false // ✅ allow specifying per-ticket free/paid
     }
-});
+]);
 
-// validation
-const validateForm = () => {
-    let valid = true;
-    errors.value = { name: '', phone: '', email: '', description: '' };
+const convenienceFeeEnabled = ref(false);
+const convenienceFee = ref('');
 
-    if (!organizerName.value) {
-        errors.value.name = 'Organizer name is required';
-        valid = false;
-    }
-    if (!phoneNumber.value) {
-        errors.value.phone = 'Phone is required';
-        valid = false;
-    }
-
-    if (!email.value) {
-        errors.value.email = 'Email is required';
-        valid = false;
-    }
-    if (!description.value) {
-        errors.value.description = 'Description is required';
-        valid = false;
-    }
-
-    return valid;
+// Add another ticket
+const addTicket = () => {
+    tickets.value.push({
+        name: '',
+        description: '',
+        price: '',
+        capacity: '',
+        isFree: false
+    });
 };
 
-// submit
+// Submit tickets
 const handleSubmit = async () => {
-    if (!validateForm()) return;
-
     try {
-        const response = await api.post('/events/organisation', {
-            event_id: store.formData.basicInfo?.id || 1,
-            name: organizerName.value,
-            phone: `${countryCode.value}-${phoneNumber.value}`,
-            description: description.value,
-            email: email.value
-        });
+        // Build payload as requested
+        const payload = {
+            event_id: 1,
+            tickets: tickets.value.map((t) => ({
+                is_free: t.isFree, // ✅ each ticket decides free/paid
+                ticket_name: t.name,
+                description: t.description,
+                price: t.isFree ? null : Number(t.price || 0),
+                capacity: Number(t.capacity || 0),
+                convenience_fee: t.isFree || !convenienceFeeEnabled.value ? null : Number(convenienceFee.value || 0)
+            }))
+        };
 
-        if (response.data.status) {
-            store.formData.organizerInfo = response.data.data;
-            snackbar.show('Organizer info saved successfully', 'success');
+        console.log('payload sending:', payload); // debug
+
+        const res = await api.post('/events/tickets', payload);
+
+        if (res.data.status) {
+            store.formData.tickets = res.data.data;
             store.nextStep();
-        } else {
-            snackbar.show(response.data.message || 'Something went wrong', 'error');
         }
     } catch (err) {
         if (err.response?.data?.errors) {
-            const apiErrors = err.response.data.errors;
-            const messages = Object.values(apiErrors).flat().join('\n');
+            const errors = err.response.data.errors;
+            const messages = Object.values(errors).flat().join('\n');
             snackbar.show(messages, 'error');
         } else {
             snackbar.show('Something went wrong', 'error');
@@ -201,13 +157,21 @@ const handleSubmit = async () => {
     }
 };
 
-// cancel
+// Go back / cancel
 const handleCancel = () => {
-    organizerName.value = '';
-    phone.value = '';
-    email.value = '';
-    description.value = '';
-    countryCode.value = '+91';
-    store.prevStep();
+    store.resetTickets?.();
 };
 </script>
+
+<style scoped>
+.form-wrapper {
+    width: 100%;
+    max-width: 700px;
+}
+
+@media (max-width: 600px) {
+    .form-wrapper {
+        max-width: 100% !important;
+    }
+}
+</style>
