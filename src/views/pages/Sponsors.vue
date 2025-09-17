@@ -3,13 +3,13 @@
         <div style="background: white; border-radius: 8px">
             <!-- Header -->
             <div class="header-section d-flex justify-space-between align-center pa-4">
-                <h5 class="title h3">All Speakers ({{ totalSpeakers }})</h5>
+                <h5 class="title h3">All Sponsors ({{ totalSponsors }})</h5>
 
                 <div class="d-flex gap-3">
                     <!-- Search -->
                     <v-text-field
                         v-model="search"
-                        placeholder="Search Speakers"
+                        placeholder="Search Sponsors"
                         density="compact"
                         variant="outlined"
                         hide-details
@@ -39,27 +39,44 @@
                 <v-progress-circular indeterminate color="primary" size="48" class="my-auto" />
             </div>
 
-            <!-- Speakers Table -->
+            <!-- Sponsors Table -->
             <v-data-table
                 v-else
                 :headers="headers"
-                :items="filteredSpeakers"
+                :items="filteredSponsors"
                 hide-default-footer
                 class="custom-table"
                 density="comfortable"
             >
-                <template #item.full_name="{ item }">
+                <!-- Business Name with Logo -->
+                <template #item.business_name="{ item }">
                     <div class="d-flex align-center gap-3">
-                        <v-avatar size="36"><img :src="item.avatar" alt="" /></v-avatar>
-                        <strong>{{ item.full_name }}</strong>
+                        <v-avatar size="36">
+                            <img :src="item.logo || '/placeholder.png'" alt="" />
+                        </v-avatar>
+                        <strong>{{ item.business_name }}</strong>
                     </div>
                 </template>
-                <template #item.events="{ item }"> {{ item.events }} Events </template>
+
+                <!-- Link column -->
+                <template #item.link="{ item }">
+                    <a :href="item.link" target="_blank">{{ item.link }}</a>
+                </template>
+
+                <!-- Events count -->
+                <template #item.events_count="{ item }"> {{ item.events_count }} Events </template>
+
+                <!-- Action button -->
+                <template #item.action="{ item }">
+                    <v-btn icon @click="viewSponsor(item)">
+                        <v-icon>mdi-open-in-new</v-icon>
+                    </v-btn>
+                </template>
             </v-data-table>
 
             <!-- Pagination -->
             <div class="d-flex justify-center mt-4">
-                <v-pagination v-model="page" :length="pageCount" total-visible="5" @update:modelValue="fetchSpeakers" />
+                <v-pagination v-model="page" :length="pageCount" total-visible="5" @update:modelValue="fetchSponsors" />
             </div>
         </div>
     </v-container>
@@ -67,12 +84,12 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import api from '@/plugins/axios'; // your axios instance
+import api from '@/plugins/axios';
 
 const loading = ref(false);
 const search = ref('');
-const speakers = ref([]);
-const totalSpeakers = ref(0);
+const sponsors = ref([]);
+const totalSponsors = ref(0);
 const page = ref(1);
 const pageCount = ref(0);
 
@@ -80,24 +97,26 @@ const sortMenu = ref(false);
 const currentSort = ref('');
 
 const sortOptions = [
-    { label: 'Most Events Attended', value: 'desc_events' },
-    { label: 'Fewer Events Attended', value: 'asc_events' },
     { label: 'A-Z', value: 'az' },
     { label: 'Z-A', value: 'za' }
 ];
 
+// columns to display
 const headers = [
-    { title: 'Full Name', key: 'full_name' },
-    { title: 'Email', key: 'email' },
-    { title: 'Phone', key: 'phone' },
-    { title: 'Event Spoken', key: 'events' }
+    { title: 'Business Name', key: 'business_name' },
+    { title: 'Link', key: 'link' },
+    { title: 'Events Count', key: 'events_count' },
+    { title: 'Action', key: 'action', sortable: false }
 ];
 
-// Fetch Speakers API
-const fetchSpeakers = async () => {
+// Fetch Sponsors API
+const fetchSponsors = async () => {
     loading.value = true;
     try {
-        const response = await api.get(`/speakers/list`, {
+        const response = await api.get(`/sponsors/list`, {
+            headers: {
+                Authorization: 'Bearer 490|30hpCbiSxjzxHFSWILINnETeZldNxcM5WYEssm4b32ad1a95'
+            },
             params: {
                 page: page.value,
                 search: search.value || '',
@@ -105,48 +124,51 @@ const fetchSpeakers = async () => {
             }
         });
 
-        // Adjust to your API structure:
-        // Suppose response looks like: { status:true, data:{ speakers: {data:[], total:..., last_page:...} } }
-        if (response.data.status) {
-            const result = response.data.data.speakers; // adjust if needed
-            speakers.value = result.data; // speakers array
-            totalSpeakers.value = result.total; // total count
-            pageCount.value = result.last_page; // pagination
+        // based on provided JSON
+        if (response.data.success) {
+            const result = response.data.data;
+            sponsors.value = result.data;
+            totalSponsors.value = result.total;
+            pageCount.value = result.last_page;
         } else {
-            speakers.value = [];
-            totalSpeakers.value = 0;
+            sponsors.value = [];
+            totalSponsors.value = 0;
         }
     } catch (error) {
-        console.error('Failed to fetch speakers:', error);
+        console.error('Failed to fetch sponsors:', error);
     } finally {
         loading.value = false;
     }
 };
 
 // Client-side search
-const filteredSpeakers = computed(() => {
-    if (!search.value) return speakers.value;
+const filteredSponsors = computed(() => {
+    if (!search.value) return sponsors.value;
     const q = search.value.toLowerCase();
-    return speakers.value.filter((s) => s.full_name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q) || s.phone.includes(q));
+    return sponsors.value.filter((s) => s.business_name.toLowerCase().includes(q) || (s.link && s.link.toLowerCase().includes(q)));
 });
 
 const applySort = (value) => {
     currentSort.value = value;
-    fetchSpeakers();
+    fetchSponsors();
 };
 
-onMounted(fetchSpeakers);
-watch(page, fetchSpeakers);
+const viewSponsor = (item) => {
+    // handle action click (e.g., open modal)
+    window.open(item.link, '_blank');
+};
+
+onMounted(fetchSponsors);
+watch(page, fetchSponsors);
 watch(search, () => {
     page.value = 1;
-    fetchSpeakers();
+    fetchSponsors();
 });
 </script>
 
 <style scoped>
 .title {
     font-weight: bold;
-    
 }
 .search-bar {
     background-color: #f4f4f4;

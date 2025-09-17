@@ -36,9 +36,33 @@ const MainRoutes = {
             meta: { requiresAuth: true, roles: ['admin'] }
         },
         {
+            path: '/admin/event/success',
+            name: 'EventSuccess', // make name unique to avoid conflict
+            component: () => import('@/views/pages/EventSuccess.vue'),
+            meta: { requiresAuth: true, roles: ['admin'] }
+        },
+        {
             path: '/admin/speakers',
             name: 'Speakers', // make name unique to avoid conflict
             component: () => import('@/views/pages/Speakers.vue'),
+            meta: { requiresAuth: true, roles: ['admin'] }
+        },
+        {
+            path: '/admin/speaker/:id',
+            name: 'SpeakerDetail', // make name unique to avoid conflict
+            component: () => import('@/views/pages/SpeakerDetail.vue'),
+            meta: { requiresAuth: true, roles: ['admin'] }
+        },
+        {
+            path: '/admin/vendors',
+            name: 'Vendors', // make name unique to avoid conflict
+            component: () => import('@/views/pages/Vendors.vue'),
+            meta: { requiresAuth: true, roles: ['admin'] }
+        },
+        {
+            path: '/admin/sponsors',
+            name: 'Sponsors', // make name unique to avoid conflict
+            component: () => import('@/views/pages/Sponsors.vue'),
             meta: { requiresAuth: true, roles: ['admin'] }
         },
         {

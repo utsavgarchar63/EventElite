@@ -3,13 +3,13 @@
         <div style="background: white; border-radius: 8px">
             <!-- Header -->
             <div class="header-section d-flex justify-space-between align-center pa-4">
-                <h5 class="title h3">All Speakers ({{ totalSpeakers }})</h5>
+                <h5 class="title h3">All Vendors ({{ totalVendors }})</h5>
 
                 <div class="d-flex gap-3">
                     <!-- Search -->
                     <v-text-field
                         v-model="search"
-                        placeholder="Search Speakers"
+                        placeholder="Search Vendors"
                         density="compact"
                         variant="outlined"
                         hide-details
@@ -39,27 +39,28 @@
                 <v-progress-circular indeterminate color="primary" size="48" class="my-auto" />
             </div>
 
-            <!-- Speakers Table -->
-            <v-data-table
-                v-else
-                :headers="headers"
-                :items="filteredSpeakers"
-                hide-default-footer
-                class="custom-table"
-                density="comfortable"
-            >
-                <template #item.full_name="{ item }">
+            <!-- Vendors Table -->
+            <v-data-table v-else :headers="headers" :items="filteredVendors" hide-default-footer class="custom-table" density="comfortable">
+                <!-- Business Name with avatar -->
+                <template #item.business_name="{ item }">
                     <div class="d-flex align-center gap-3">
-                        <v-avatar size="36"><img :src="item.avatar" alt="" /></v-avatar>
-                        <strong>{{ item.full_name }}</strong>
+                        <v-avatar size="36">
+                            <img :src="item.avatar || '/placeholder.png'" alt="" />
+                        </v-avatar>
+                        <strong>{{ item.business_name }}</strong>
                     </div>
                 </template>
-                <template #item.events="{ item }"> {{ item.events }} Events </template>
+
+                <template #item.action="{ item }">
+                    <v-btn icon @click="viewVendor(item)">
+                        <v-icon>mdi-web</v-icon>
+                    </v-btn>
+                </template>
             </v-data-table>
 
             <!-- Pagination -->
             <div class="d-flex justify-center mt-4">
-                <v-pagination v-model="page" :length="pageCount" total-visible="5" @update:modelValue="fetchSpeakers" />
+                <v-pagination v-model="page" :length="pageCount" total-visible="5" @update:modelValue="fetchVendors" />
             </div>
         </div>
     </v-container>
@@ -71,8 +72,8 @@ import api from '@/plugins/axios'; // your axios instance
 
 const loading = ref(false);
 const search = ref('');
-const speakers = ref([]);
-const totalSpeakers = ref(0);
+const vendors = ref([]);
+const totalVendors = ref(0);
 const page = ref(1);
 const pageCount = ref(0);
 
@@ -80,24 +81,24 @@ const sortMenu = ref(false);
 const currentSort = ref('');
 
 const sortOptions = [
-    { label: 'Most Events Attended', value: 'desc_events' },
-    { label: 'Fewer Events Attended', value: 'asc_events' },
     { label: 'A-Z', value: 'az' },
     { label: 'Z-A', value: 'za' }
 ];
 
 const headers = [
-    { title: 'Full Name', key: 'full_name' },
+    { title: 'Business Name', key: 'business_name' },
+    { title: 'Location', key: 'location' },
+    { title: 'Contact Name', key: 'contact_name' },
     { title: 'Email', key: 'email' },
     { title: 'Phone', key: 'phone' },
-    { title: 'Event Spoken', key: 'events' }
+    { title: 'Action', key: 'action', sortable: false }
 ];
 
-// Fetch Speakers API
-const fetchSpeakers = async () => {
+// Fetch Vendors API
+const fetchVendors = async () => {
     loading.value = true;
     try {
-        const response = await api.get(`/speakers/list`, {
+        const response = await api.get(`/vendors/list`, {
             params: {
                 page: page.value,
                 search: search.value || '',
@@ -105,48 +106,58 @@ const fetchSpeakers = async () => {
             }
         });
 
-        // Adjust to your API structure:
-        // Suppose response looks like: { status:true, data:{ speakers: {data:[], total:..., last_page:...} } }
+        // Adjust to your API structure
+        // Suppose response looks like: { status:true, data:{ vendors: {data:[], total:..., last_page:...} } }
         if (response.data.status) {
-            const result = response.data.data.speakers; // adjust if needed
-            speakers.value = result.data; // speakers array
-            totalSpeakers.value = result.total; // total count
-            pageCount.value = result.last_page; // pagination
+            const result = response.data.data.vendors; // adjust if needed
+            vendors.value = result.data;
+            totalVendors.value = result.total;
+            pageCount.value = result.last_page;
         } else {
-            speakers.value = [];
-            totalSpeakers.value = 0;
+            vendors.value = [];
+            totalVendors.value = 0;
         }
     } catch (error) {
-        console.error('Failed to fetch speakers:', error);
+        console.error('Failed to fetch vendors:', error);
     } finally {
         loading.value = false;
     }
 };
 
 // Client-side search
-const filteredSpeakers = computed(() => {
-    if (!search.value) return speakers.value;
+const filteredVendors = computed(() => {
+    if (!search.value) return vendors.value;
     const q = search.value.toLowerCase();
-    return speakers.value.filter((s) => s.full_name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q) || s.phone.includes(q));
+    return vendors.value.filter(
+        (v) =>
+            v.business_name.toLowerCase().includes(q) ||
+            v.contact_name.toLowerCase().includes(q) ||
+            v.email.toLowerCase().includes(q) ||
+            v.phone.includes(q)
+    );
 });
 
 const applySort = (value) => {
     currentSort.value = value;
-    fetchSpeakers();
+    fetchVendors();
 };
 
-onMounted(fetchSpeakers);
-watch(page, fetchSpeakers);
+const viewVendor = (item) => {
+    // handle action click (go to website / open modal)
+    console.log('Vendor clicked:', item);
+};
+
+onMounted(fetchVendors);
+watch(page, fetchVendors);
 watch(search, () => {
     page.value = 1;
-    fetchSpeakers();
+    fetchVendors();
 });
 </script>
 
 <style scoped>
 .title {
     font-weight: bold;
-    
 }
 .search-bar {
     background-color: #f4f4f4;
