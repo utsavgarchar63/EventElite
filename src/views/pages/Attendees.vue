@@ -1,146 +1,152 @@
 <template>
-     <v-container>
-          <!-- Metrics Section -->
-          <v-row>
-               <v-col cols="12" sm="6" md="3" v-for="card in eventCards" :key="card.title">
-                    <MetricCard :title="card.title" :avatarColor="card.avatarColor" :value="card.value"
-                         :icon="card.icon" />
-               </v-col>
+    <v-container>
+        <div style="background: white; border-radius: 8px">
+            <!-- Header -->
+            <div class="header-section d-flex justify-space-between align-center pa-4">
+                <h5 class="title h3">All Attendees ({{ totalAttendees }})</h5>
 
-               <!-- Create Event Button -->
-               <v-col cols="12" sm="6" md="3" class="d-flex justify-center justify-md-end mt-4 mt-md-0">
-                    <v-btn color="primary" class="h-fit" size="large" prepend-icon="mdi-plus">
-                         Create Event
-                    </v-btn>
-               </v-col>
-          </v-row>
+                <div class="d-flex gap-3">
+                    <!-- Search -->
+                    <v-text-field
+                        v-model="search"
+                        placeholder="Search Attendees"
+                        density="compact"
+                        variant="outlined"
+                        hide-details
+                        clearable
+                        append-inner-icon="mdi-magnify"
+                        class="search-bar"
+                    />
+                </div>
+            </div>
 
-          <!-- Tabs for Events -->
-          <div style="margin-top: 20px; background-color: white; width: 100%; padding: 10px; border-radius: 10px;">
-               <v-row class="align-center">
+            <!-- Loader -->
+            <div v-if="loading" class="d-flex justify-center" style="height: 200px">
+                <v-progress-circular indeterminate color="primary" size="48" class="my-auto" />
+            </div>
 
-                    <!-- Tabs -->
-                    <v-col>
-                         <v-tabs v-model="activeTab" background-color="white" color="primary" slider-color="primary"
-                              class="main-tabs">
-                              <v-tab value="upcoming" class="text-body-1">Upcoming Events</v-tab>
-                              <v-tab value="past" class="text-body-1">Past Events</v-tab>
-                              <v-tab value="draft" class="text-body-1">Draft Events</v-tab>
-                              <v-tab value="cancelled" class="text-body-1">Cancelled Events</v-tab>
-                         </v-tabs>
-                    </v-col>
+            <!-- Attendees Table -->
+            <v-data-table
+                v-else
+                :headers="headers"
+                :items="filteredAttendees"
+                hide-default-footer
+                class="custom-table"
+                density="comfortable"
+                @click:row="goToAttendeeDetailFromRow"
+            >
+                <template #item.events_attended="{ item }"> {{ item.events_attended }} Events </template>
+                <template #item.total_spend="{ item }"> ${{ item.total_spend }} </template>
+            </v-data-table>
 
-                    <!-- End Download Button -->
-                    <v-col cols="auto" class="d-flex align-center">
-                         <v-btn variant="outlined" color="#525454" style="border-color: #D5D6DA;"
-                              prepend-icon="mdi-download" @click="downloadReport">
-                              Download
-                         </v-btn>
-                    </v-col>
-               </v-row>
-
-               <!-- Tabs Content -->
-               <v-window v-model="activeTab">
-                    <v-window-item value="upcoming">
-                         <EventList eventType="upcoming" />
-                    </v-window-item>
-                    <v-window-item value="past">
-                         <EventList eventType="past" />
-                    </v-window-item>
-                    <v-window-item value="draft">
-                         <EventList eventType="draft" />
-                    </v-window-item>
-                    <v-window-item value="cancelled">
-                         <EventList eventType="cancelled" />
-                    </v-window-item>
-               </v-window>
-          </div>
-
-
-          <!-- Snackbar for notifications -->
-          <v-snackbar v-model="useSnackbarStore().snackbar" :color="useSnackbarStore().color" timeout="4000"
-               location="top right" transition="slide-x-reverse-transition" class="custom-snackbar">
-               <div class="snackbar-content">
-                    <v-icon v-if="useSnackbarStore().color === 'success'" size="22" class="me-1" color="white">
-                         mdi-check-circle
-                    </v-icon>
-                    <v-icon v-else-if="useSnackbarStore().color === 'error'" size="22" class="me-1" color="white">
-                         mdi-alert-circle
-                    </v-icon>
-                    <v-icon v-else size="22" color="white" class="me-1">
-                         mdi-information
-                    </v-icon>
-                    <span class="snackbar-text">{{ useSnackbarStore().message }}</span>
-               </div>
-          </v-snackbar>
-     </v-container>
+            <!-- Pagination -->
+            <div class="d-flex justify-center mt-4">
+                <v-pagination v-model="page" :length="pageCount" total-visible="5" @update:modelValue="fetchAttendees" />
+            </div>
+        </div>
+    </v-container>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted } from "vue";
-import MetricCard from "@/components/dashboard/MetricCard.vue";
-import { useSnackbarStore } from "@/store/snackbar";
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue';
+import api from '@/plugins/axios';
+import { useSnackbarStore } from '@/store/snackbar';
+import { useRouter } from 'vue-router';
 
-// Icons
-import dollarIcon from "@/assets/images/icons/dollar.svg";
-import grommetIcon from "@/assets/images/icons/grommet.svg";
-import ticketIcon from "@/assets/images/icons/ticket.svg";
-import EventList from "../components/events/EventList.vue";
+const router = useRouter();
+const snackbar = useSnackbarStore();
 
-const activeTab = ref("upcoming");
+const loading = ref(false);
+const search = ref('');
+const attendees = ref([]);
+const totalAttendees = ref(0);
+const page = ref(1);
+const pageCount = ref(0);
 
-const eventCards = ref([
-     { title: "Total Events", value: 0, icon: ticketIcon, avatarColor: "primary" },
-     { title: "Total Tickets", value: 0, icon: grommetIcon, avatarColor: "#FFAA7F" },
-     { title: "Total Revenue", value: "$0", icon: dollarIcon, avatarColor: "#33B875" }
-]);
+// columns to display
+const headers = [
+    { title: 'Name', key: 'name' },
+    { title: 'Email', key: 'email' },
+    { title: 'Phone', key: 'phone' },
+    { title: 'Events Attended', key: 'events_attended' },
+    { title: 'Total Spend', key: 'total_spend' }
+];
 
-const downloadReport = () => {
-     console.log("Download report logic here");
-     // You can add CSV, Excel, or PDF download logic here
+// Fetch Attendees API
+const fetchAttendees = async () => {
+    loading.value = true;
+    try {
+        const response = await api.get('/attendees/list', {
+            params: {
+                page: page.value,
+                search: search.value || ''
+            }
+        });
+
+        if (response.data.success) {
+            const result = response.data.data;
+            attendees.value = result.data;
+            totalAttendees.value = result.total;
+            pageCount.value = result.last_page;
+        } else {
+            attendees.value = [];
+            totalAttendees.value = 0;
+        }
+    } catch (err) {
+        if (err.response?.data?.errors) {
+            const apiErrors = err.response.data.errors;
+            const messages = Object.values(apiErrors).flat().join('\n');
+            snackbar.show(messages, 'error');
+        } else {
+            snackbar.show('Something went wrong', 'error');
+        }
+    } finally {
+        loading.value = false;
+    }
 };
 
-const fetchEventStats = async () => {
-     // try {
-     //      const response = await api.get(`/events/stats/1`, {
-     //           headers: {
-     //                Authorization: `Bearer ${localStorage.getItem("token")}`
-     //           }
-     //      });
+// Client-side search
+const filteredAttendees = computed(() => {
+    if (!search.value) return attendees.value;
+    const q = search.value.toLowerCase();
+    return attendees.value.filter(
+        (a) =>
+            a.name.toLowerCase().includes(q) ||
+            (a.email && a.email.toLowerCase().includes(q)) ||
+            (a.phone && a.phone.toLowerCase().includes(q))
+    );
+});
 
-     //      if (response.data && response.data.data) {
-     //           const stats = response.data.data;
-     eventCards.value = [
-          {
-               title: "Total Events",
-               // value: stats.total_events || 0,
-               value: 150,
-               icon: ticketIcon,
-               avatarColor: "primary"
-          },
-          {
-               title: "Total Tickets",
-               // value: stats.total_tickets || 0,
-               value: 35000,
-               icon: grommetIcon,
-               avatarColor: "#FFAA7F"
-          },
-          {
-               title: "Total Revenue",
-               // value: `$${stats.total_revenue || 0}`,
-               value: `$1,40,000`,
-               icon: dollarIcon,
-               avatarColor: "#33B875"
-          }
-     ];
-     //      }
-     // } catch (error) {
-     //      console.error("Failed to fetch event stats:", error);
-     //      useSnackbarStore().show("Failed to load event stats", "error");
-     // }
+// Navigate to attendee detail page
+const goToAttendeeDetail = (id) => {
+    router.push({ name: 'AttendeeDetail', params: { id } });
 };
 
-onMounted(() => {
-     fetchEventStats();
+const goToAttendeeDetailFromRow = (event, item) => {
+    goToAttendeeDetail(item.item.id); // item.item = actual row data
+};
+
+onMounted(fetchAttendees);
+watch(page, fetchAttendees);
+watch(search, () => {
+    page.value = 1;
+    fetchAttendees();
 });
 </script>
+
+<style scoped>
+.title {
+    font-weight: bold;
+}
+.search-bar {
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    width: 250px;
+}
+.custom-table {
+    background: white;
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+</style>
