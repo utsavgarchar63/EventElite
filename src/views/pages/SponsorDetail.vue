@@ -6,42 +6,38 @@ import MetricCard from '@/components/dashboard/MetricCard.vue';
 import ticketIcon from '@/assets/images/icons/ticket.svg';
 
 const route = useRoute();
-const speakerId = route.params.id;
+const sponsorId = route.params.id; // changed to sponsorId
 
 // states
 const loading = ref(false);
-const speaker = ref(null);
+const sponsor = ref(null);
 const upcomingEvents = ref([]);
 const pastEvents = ref([]);
 const cancelledEvents = ref([]);
 const activeTab = ref('upcoming');
 
-// dialog + form states
+// dialog + form states (if you want to update sponsor info)
 const updateDialog = ref(false);
 const form = ref({
-    name: '',
-    email: '',
-    phone: ''
+    business_name: '',
+    link: '',
+    logo: null // will hold File object
 });
 
-// Fetch speaker detail API
-const fetchSpeakerDetails = async () => {
+// Fetch sponsor detail API
+const fetchSponsorDetails = async () => {
     loading.value = true;
     try {
-        const response = await api.get(`/speakers/info/${speakerId}`, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
-        });
+        const response = await api.get(`/sponsors/info/${sponsorId}`);
 
         if (response.data.status) {
-            speaker.value = response.data.data.speaker;
+            sponsor.value = response.data.data.sponsor;
             upcomingEvents.value = response.data.data.upcomingEvents;
             pastEvents.value = response.data.data.pastEvents;
             cancelledEvents.value = response.data.data.cancelledEvents;
         }
     } catch (error) {
-        console.error('Failed to fetch speaker info:', error);
+        console.error('Failed to fetch sponsor info:', error);
     } finally {
         loading.value = false;
     }
@@ -49,31 +45,46 @@ const fetchSpeakerDetails = async () => {
 
 // open dialog and pre-fill form
 const openUpdateDialog = () => {
-    if (speaker.value) {
+    if (sponsor.value) {
         form.value = {
-            name: speaker.value.name,
-            email: speaker.value.email,
-            phone: speaker.value.phone
+            business_name: sponsor.value.business_name,
+            link: sponsor.value.link,
+            logo: null // don’t preload the file
         };
         updateDialog.value = true;
     }
 };
 
-// Update API call
-const updateSpeaker = async () => {
+// Update API call (if you implement update endpoint)
+const updateSponsor = async () => {
     try {
         loading.value = true;
-        await api.put(`/speakers/update/${speakerId}`, form.value);
+
+        // prepare form data
+        const fd = new FormData();
+        fd.append('business_name', form.value.business_name);
+        fd.append('link', form.value.link);
+
+        // only append logo if user selected one
+        if (form.value.logo instanceof File) {
+            fd.append('logo', form.value.logo);
+        }
+
+        // required because Laravel expects PUT via _method in multipart
+        fd.append('_method', 'PUT');
+
+        await api.post(`/sponsors/update/${sponsorId}`, fd);
+
         updateDialog.value = false;
-        await fetchSpeakerDetails(); // refresh data
+        await fetchSponsorDetails(); // refresh data
     } catch (error) {
-        console.error('Failed to update speaker:', error);
+        console.error('Failed to update sponsor:', error);
     } finally {
         loading.value = false;
     }
 };
 
-onMounted(fetchSpeakerDetails);
+onMounted(fetchSponsorDetails);
 </script>
 <template>
     <v-container>
@@ -84,37 +95,45 @@ onMounted(fetchSpeakerDetails);
 
         <div v-else>
             <v-row>
-                <!-- User Info -->
+                <!-- Sponsor Info -->
                 <v-col cols="12" md="4">
                     <v-card class="pa-4" elevation="0" rounded="lg">
                         <div class="d-flex justify-space-between align-center">
-                            <h4 class="mb-2 font-weight-bold h3 mb-4">Users Information</h4>
+                            <h4 class="mb-2 font-weight-bold h3 mb-4">Sponsor Information</h4>
                         </div>
-                        <div v-if="speaker">
-                            <p class="text-h6 mb-0">{{ speaker.name }}</p>
+                        <div v-if="sponsor">
+                            <p class="text-h6 mb-0">{{ sponsor.business_name }}</p>
                             <h3 class="my-4 h5" style="color: #525454">Basic Information</h3>
                             <p class="mb-2">
-                                Email address : <br />
-                                <strong>{{ speaker.email }}</strong>
+                                Website : <br />
+                                <strong>
+                                    <a :href="sponsor.link" target="_blank">{{ sponsor.link }}</a>
+                                </strong>
                             </p>
-                            <p>
-                                Phone number : <br />
-                                <strong>{{ speaker.phone }}</strong>
+                            <p v-if="sponsor.logo">
+                                Logo : <br />
+                                <img
+                                    v-if="sponsor.logo"
+                                    :src="`https://eventelite-eanm.onrender.com/${sponsor.logo}`"
+                                    alt="logo"
+                                    width="120"
+                                />
                             </p>
                         </div>
                     </v-card>
                 </v-col>
 
-                <!-- Total Events Spoken Metric -->
+                <!-- Total Events Sponsored Metric -->
                 <v-col cols="12" md="4">
                     <MetricCard
-                        v-if="speaker"
-                        title="Total Events Spoken"
-                        :value="speaker.events_count"
+                        v-if="sponsor"
+                        title="Total Events Sponsored"
+                        :value="sponsor.events_count"
                         :icon="ticketIcon"
                         avatarColor="primary"
                     />
                 </v-col>
+
                 <v-col cols="12" md="4" class="d-flex justify-end mt-3">
                     <v-btn color="primary" size="large" @click="openUpdateDialog">Update</v-btn>
                 </v-col>
@@ -138,7 +157,8 @@ onMounted(fetchSpeakerDetails);
                         <v-data-table
                             :headers="[
                                 { title: 'Event Name', key: 'event_name' },
-                                { title: 'Event Date', key: 'start_datetime' }
+                                { title: 'Event Date', key: 'start_datetime' },
+                                { title: 'Venue', key: 'venue' }
                             ]"
                             :items="upcomingEvents"
                             hide-default-footer
@@ -153,7 +173,8 @@ onMounted(fetchSpeakerDetails);
                         <v-data-table
                             :headers="[
                                 { title: 'Event Name', key: 'event_name' },
-                                { title: 'Event Date', key: 'start_datetime' }
+                                { title: 'Event Date', key: 'start_datetime' },
+                                { title: 'Venue', key: 'venue' }
                             ]"
                             :items="pastEvents"
                             hide-default-footer
@@ -168,7 +189,8 @@ onMounted(fetchSpeakerDetails);
                         <v-data-table
                             :headers="[
                                 { title: 'Event Name', key: 'event_name' },
-                                { title: 'Event Date', key: 'start_datetime' }
+                                { title: 'Event Date', key: 'start_datetime' },
+                                { title: 'Venue', key: 'venue' }
                             ]"
                             :items="cancelledEvents"
                             hide-default-footer
@@ -185,20 +207,20 @@ onMounted(fetchSpeakerDetails);
         <!-- Update Dialog -->
         <v-dialog v-model="updateDialog" max-width="500px">
             <v-card>
-                <v-card-title class="text-h4">Update Speaker</v-card-title>
+                <v-card-title class="text-h4">Update Sponsor</v-card-title>
                 <v-card-text>
-                    <v-label>Name</v-label>
-                    <v-text-field v-model="form.name" variant="outlined"></v-text-field>
+                    <v-label>Business Name</v-label>
+                    <v-text-field v-model="form.business_name" variant="outlined"></v-text-field>
 
-                    <v-label>Email</v-label>
-                    <v-text-field v-model="form.email" variant="outlined"></v-text-field>
+                    <v-label>Website Link</v-label>
+                    <v-text-field v-model="form.link" variant="outlined"></v-text-field>
 
-                    <v-label>Phone</v-label>
-                    <v-text-field v-model="form.phone" variant="outlined"></v-text-field>
+                    <v-label>Logo</v-label>
+                    <input type="file" accept="image/*" @change="(e) => (form.logo = e.target.files[0])" />
                 </v-card-text>
                 <v-card-actions class="justify-end">
                     <v-btn text @click="updateDialog = false">Cancel</v-btn>
-                    <v-btn color="primary" @click="updateSpeaker">Save</v-btn>
+                    <v-btn color="primary" @click="updateSponsor">Save</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>

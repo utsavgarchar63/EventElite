@@ -54,6 +54,18 @@ const MainRoutes = {
             meta: { requiresAuth: true, roles: ['admin'] }
         },
         {
+            path: '/admin/sponsor/:id',
+            name: 'SponsorDetail', // make name unique to avoid conflict
+            component: () => import('@/views/pages/SponsorDetail.vue'),
+            meta: { requiresAuth: true, roles: ['admin'] }
+        },
+        {
+            path: '/admin/vendor/:id',
+            name: 'VendorDetail', // make name unique to avoid conflict
+            component: () => import('@/views/pages/VendorDetail.vue'),
+            meta: { requiresAuth: true, roles: ['admin'] }
+        },
+        {
             path: '/admin/vendors',
             name: 'Vendors', // make name unique to avoid conflict
             component: () => import('@/views/pages/Vendors.vue'),

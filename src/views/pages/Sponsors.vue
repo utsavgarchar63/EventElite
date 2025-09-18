@@ -47,6 +47,7 @@
                 hide-default-footer
                 class="custom-table"
                 density="comfortable"
+                @click:row="goToSponsorDetailFromRow"
             >
                 <!-- Business Name with Logo -->
                 <template #item.business_name="{ item }">
@@ -85,7 +86,12 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import api from '@/plugins/axios';
+import { useSnackbarStore } from '@/store/snackbar';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
+
+const snackbar = useSnackbarStore();
 const loading = ref(false);
 const search = ref('');
 const sponsors = ref([]);
@@ -134,11 +140,26 @@ const fetchSponsors = async () => {
             sponsors.value = [];
             totalSponsors.value = 0;
         }
-    } catch (error) {
-        console.error('Failed to fetch sponsors:', error);
+    } catch (err) {
+        if (err.response?.data?.errors) {
+            const apiErrors = err.response.data.errors;
+            const messages = Object.values(apiErrors).flat().join('\n');
+            snackbar.show(messages, 'error');
+        } else {
+            snackbar.show('Something went wrong', 'error');
+        }
     } finally {
         loading.value = false;
     }
+};
+
+const goToSponsorDetail = (id) => {
+    router.push({ name: 'SponsorDetail', params: { id } });
+};
+
+const goToSponsorDetailFromRow = (event, item) => {
+    // item.item = actual data row
+    goToSponsorDetail(item.item.id);
 };
 
 // Client-side search

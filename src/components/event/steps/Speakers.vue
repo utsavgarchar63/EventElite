@@ -99,9 +99,10 @@ import { useEventStore } from '@/store/eventStore';
 import { ref } from 'vue';
 import axios from 'axios';
 import api from '@/plugins/axios';
+import { useSnackbarStore } from '@/store/snackbar';
 
 const store = useEventStore();
-
+const snackbar = useSnackbarStore();
 // Reference speakers from store
 const speakers = ref(
     store.formData.speakers.length
@@ -182,8 +183,14 @@ const handleSubmit = async () => {
             store.formData.speakers = res.data.data;
             store.nextStep();
         }
-    } catch (error) {
-        console.error('Error saving speakers:', error.response?.data || error);
+    } catch (err) {
+        if (err.response?.data?.errors) {
+            const apiErrors = err.response.data.errors;
+            const messages = Object.values(apiErrors).flat().join('\n');
+            snackbar.show(messages, 'error');
+        } else {
+            snackbar.show('Something went wrong', 'error');
+        }
     }
 };
 

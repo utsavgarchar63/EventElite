@@ -40,19 +40,27 @@
             </div>
 
             <!-- Vendors Table -->
-            <v-data-table v-else :headers="headers" :items="filteredVendors" hide-default-footer class="custom-table" density="comfortable">
+            <v-data-table
+                v-else
+                :headers="headers"
+                :items="filteredVendors"
+                hide-default-footer
+                class="custom-table"
+                density="comfortable"
+                @click:row="goToVendorDetail"
+            >
                 <!-- Business Name with avatar -->
                 <template #item.business_name="{ item }">
                     <div class="d-flex align-center gap-3">
                         <v-avatar size="36">
-                            <img :src="item.avatar || '/placeholder.png'" alt="" />
+                            <img :src="item.logo ? baseURL + item.logo : '/placeholder.png'" alt="" />
                         </v-avatar>
                         <strong>{{ item.business_name }}</strong>
                     </div>
                 </template>
 
                 <template #item.action="{ item }">
-                    <v-btn icon @click="viewVendor(item)">
+                    <v-btn icon :href="item.business_link" target="_blank">
                         <v-icon>mdi-web</v-icon>
                     </v-btn>
                 </template>
@@ -69,7 +77,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import api from '@/plugins/axios'; // your axios instance
-
+import { useRouter } from 'vue-router';
+const router = useRouter();
 const loading = ref(false);
 const search = ref('');
 const vendors = ref([]);
@@ -106,13 +115,12 @@ const fetchVendors = async () => {
             }
         });
 
-        // Adjust to your API structure
-        // Suppose response looks like: { status:true, data:{ vendors: {data:[], total:..., last_page:...} } }
-        if (response.data.status) {
-            const result = response.data.data.vendors; // adjust if needed
-            vendors.value = result.data;
-            totalVendors.value = result.total;
-            pageCount.value = result.last_page;
+        // Adjusted to your API response
+        if (response.data.success) {
+            const result = response.data.data; // main data object
+            vendors.value = result.data; // array of vendors
+            totalVendors.value = result.total; // total count
+            pageCount.value = result.last_page; // total pages
         } else {
             vendors.value = [];
             totalVendors.value = 0;
@@ -124,6 +132,10 @@ const fetchVendors = async () => {
     }
 };
 
+const goToVendorDetail = (event, item) => {
+    // item.item is the actual vendor data
+    router.push({ name: 'VendorDetail', params: { id: item.item.id } });
+};
 // Client-side search
 const filteredVendors = computed(() => {
     if (!search.value) return vendors.value;

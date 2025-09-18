@@ -47,13 +47,17 @@
                 hide-default-footer
                 class="custom-table"
                 density="comfortable"
+                @click:row="goToSpeakerDetailFromRow"
             >
                 <template #item.full_name="{ item }">
-                    <div class="d-flex align-center gap-3">
-                        <v-avatar size="36"><img :src="item.avatar" alt="" /></v-avatar>
+                    <div class="d-flex align-center gap-3" style="cursor: pointer">
+                        <v-avatar size="36">
+                            <v-icon>mdi-account</v-icon>
+                        </v-avatar>
                         <strong>{{ item.full_name }}</strong>
                     </div>
                 </template>
+
                 <template #item.events="{ item }"> {{ item.events }} Events </template>
             </v-data-table>
 
@@ -68,6 +72,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import api from '@/plugins/axios'; // your axios instance
+import { useRouter } from 'vue-router';
 
 const loading = ref(false);
 const search = ref('');
@@ -78,6 +83,7 @@ const pageCount = ref(0);
 
 const sortMenu = ref(false);
 const currentSort = ref('');
+const router = useRouter();
 
 const sortOptions = [
     { label: 'Most Events Attended', value: 'desc_events' },
@@ -105,13 +111,20 @@ const fetchSpeakers = async () => {
             }
         });
 
-        // Adjust to your API structure:
-        // Suppose response looks like: { status:true, data:{ speakers: {data:[], total:..., last_page:...} } }
-        if (response.data.status) {
-            const result = response.data.data.speakers; // adjust if needed
-            speakers.value = result.data; // speakers array
-            totalSpeakers.value = result.total; // total count
-            pageCount.value = result.last_page; // pagination
+        if (response.data.success) {
+            const result = response.data.data;
+
+            // Map API data to your table fields
+            speakers.value = result.data.map((sp) => ({
+                id: sp.id,
+                full_name: sp.name,
+                email: sp.email,
+                phone: sp.phone,
+                events: sp.events_count
+            }));
+
+            totalSpeakers.value = result.total;
+            pageCount.value = result.last_page;
         } else {
             speakers.value = [];
             totalSpeakers.value = 0;
@@ -121,6 +134,15 @@ const fetchSpeakers = async () => {
     } finally {
         loading.value = false;
     }
+};
+
+const goToSpeakerDetail = (id) => {
+    router.push({ name: 'SpeakerDetail', params: { id } });
+};
+
+const goToSpeakerDetailFromRow = (event, item) => {
+    // item.item = actual data row
+    goToSpeakerDetail(item.item.id);
 };
 
 // Client-side search
@@ -146,7 +168,6 @@ watch(search, () => {
 <style scoped>
 .title {
     font-weight: bold;
-    
 }
 .search-bar {
     background-color: #f4f4f4;
