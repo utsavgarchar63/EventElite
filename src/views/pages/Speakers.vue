@@ -7,16 +7,8 @@
 
                 <div class="d-flex gap-3">
                     <!-- Search -->
-                    <v-text-field
-                        v-model="search"
-                        placeholder="Search Speakers"
-                        density="compact"
-                        variant="outlined"
-                        hide-details
-                        clearable
-                        append-inner-icon="mdi-magnify"
-                        class="search-bar"
-                    />
+                    <v-text-field v-model="search" placeholder="Search Speakers" density="compact" variant="outlined"
+                        hide-details clearable append-inner-icon="mdi-magnify" class="search-bar" />
 
                     <!-- Sort Menu -->
                     <v-menu v-model="sortMenu" offset-y>
@@ -26,7 +18,8 @@
                             </v-btn>
                         </template>
                         <v-list>
-                            <v-list-item v-for="option in sortOptions" :key="option.value" @click="applySort(option.value)">
+                            <v-list-item v-for="option in sortOptions" :key="option.value"
+                                @click="applySort(option.value)">
                                 <v-list-item-title>{{ option.label }}</v-list-item-title>
                             </v-list-item>
                         </v-list>
@@ -40,15 +33,8 @@
             </div>
 
             <!-- Speakers Table -->
-            <v-data-table
-                v-else
-                :headers="headers"
-                :items="filteredSpeakers"
-                hide-default-footer
-                class="custom-table"
-                density="comfortable"
-                @click:row="goToSpeakerDetailFromRow"
-            >
+            <v-data-table v-else :headers="headers" :items="filteredSpeakers" hide-default-footer class="custom-table"
+                density="comfortable" @click:row="goToSpeakerDetailFromRow">
                 <template #item.full_name="{ item }">
                     <div class="d-flex align-center gap-3" style="cursor: pointer">
                         <v-avatar size="36">
@@ -103,7 +89,9 @@ const headers = [
 const fetchSpeakers = async () => {
     loading.value = true;
     try {
-        const response = await api.get(`/speakers/list`, {
+        const userString = localStorage.getItem('user'); // get the string
+        const user = userString ? JSON.parse(userString) : null;
+        const response = await api.get(`/speakers/list/${user.organization_id}`, {
             params: {
                 page: page.value,
                 search: search.value || '',
@@ -169,11 +157,13 @@ watch(search, () => {
 .title {
     font-weight: bold;
 }
+
 .search-bar {
     background-color: #f4f4f4;
     border-radius: 8px;
     width: 250px;
 }
+
 .custom-table {
     background: white;
     width: 100%;

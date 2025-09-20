@@ -7,16 +7,8 @@
 
                 <div class="d-flex gap-3">
                     <!-- Search -->
-                    <v-text-field
-                        v-model="search"
-                        placeholder="Search Attendees"
-                        density="compact"
-                        variant="outlined"
-                        hide-details
-                        clearable
-                        append-inner-icon="mdi-magnify"
-                        class="search-bar"
-                    />
+                    <v-text-field v-model="search" placeholder="Search Attendees" density="compact" variant="outlined"
+                        hide-details clearable append-inner-icon="mdi-magnify" class="search-bar" />
                 </div>
             </div>
 
@@ -26,22 +18,16 @@
             </div>
 
             <!-- Attendees Table -->
-            <v-data-table
-                v-else
-                :headers="headers"
-                :items="filteredAttendees"
-                hide-default-footer
-                class="custom-table"
-                density="comfortable"
-                @click:row="goToAttendeeDetailFromRow"
-            >
+            <v-data-table v-else :headers="headers" :items="filteredAttendees" hide-default-footer class="custom-table"
+                density="comfortable" @click:row="goToAttendeeDetailFromRow">
                 <template #item.events_attended="{ item }"> {{ item.events_attended }} Events </template>
                 <template #item.total_spend="{ item }"> ${{ item.total_spend }} </template>
             </v-data-table>
 
             <!-- Pagination -->
             <div class="d-flex justify-center mt-4">
-                <v-pagination v-model="page" :length="pageCount" total-visible="5" @update:modelValue="fetchAttendees" />
+                <v-pagination v-model="page" :length="pageCount" total-visible="5"
+                    @update:modelValue="fetchAttendees" />
             </div>
         </div>
     </v-container>
@@ -75,8 +61,11 @@ const headers = [
 // Fetch Attendees API
 const fetchAttendees = async () => {
     loading.value = true;
+    const userString = localStorage.getItem('user'); // get the string
+    const user = userString ? JSON.parse(userString) : null;
+
     try {
-        const response = await api.get('/attendees/list', {
+        const response = await api.get(`/attendees/list/${user.organization_id}`, {
             params: {
                 page: page.value,
                 search: search.value || ''
@@ -138,11 +127,13 @@ watch(search, () => {
 .title {
     font-weight: bold;
 }
+
 .search-bar {
     background-color: #f4f4f4;
     border-radius: 8px;
     width: 250px;
 }
+
 .custom-table {
     background: white;
     width: 100%;

@@ -7,16 +7,8 @@
 
                 <div class="d-flex gap-3">
                     <!-- Search -->
-                    <v-text-field
-                        v-model="search"
-                        placeholder="Search Sponsors"
-                        density="compact"
-                        variant="outlined"
-                        hide-details
-                        clearable
-                        append-inner-icon="mdi-magnify"
-                        class="search-bar"
-                    />
+                    <v-text-field v-model="search" placeholder="Search Sponsors" density="compact" variant="outlined"
+                        hide-details clearable append-inner-icon="mdi-magnify" class="search-bar" />
 
                     <!-- Sort Menu -->
                     <v-menu v-model="sortMenu" offset-y>
@@ -26,7 +18,8 @@
                             </v-btn>
                         </template>
                         <v-list>
-                            <v-list-item v-for="option in sortOptions" :key="option.value" @click="applySort(option.value)">
+                            <v-list-item v-for="option in sortOptions" :key="option.value"
+                                @click="applySort(option.value)">
                                 <v-list-item-title>{{ option.label }}</v-list-item-title>
                             </v-list-item>
                         </v-list>
@@ -40,15 +33,8 @@
             </div>
 
             <!-- Sponsors Table -->
-            <v-data-table
-                v-else
-                :headers="headers"
-                :items="filteredSponsors"
-                hide-default-footer
-                class="custom-table"
-                density="comfortable"
-                @click:row="goToSponsorDetailFromRow"
-            >
+            <v-data-table v-else :headers="headers" :items="filteredSponsors" hide-default-footer class="custom-table"
+                density="comfortable" @click:row="goToSponsorDetailFromRow">
                 <!-- Business Name with Logo -->
                 <template #item.business_name="{ item }">
                     <div class="d-flex align-center gap-3">
@@ -119,7 +105,9 @@ const headers = [
 const fetchSponsors = async () => {
     loading.value = true;
     try {
-        const response = await api.get(`/sponsors/list`, {
+        const userString = localStorage.getItem('user'); // get the string
+        const user = userString ? JSON.parse(userString) : null;
+        const response = await api.get(`/sponsors/list/${user.organization_id}`, {
             headers: {
                 Authorization: 'Bearer 490|30hpCbiSxjzxHFSWILINnETeZldNxcM5WYEssm4b32ad1a95'
             },
@@ -191,11 +179,13 @@ watch(search, () => {
 .title {
     font-weight: bold;
 }
+
 .search-bar {
     background-color: #f4f4f4;
     border-radius: 8px;
     width: 250px;
 }
+
 .custom-table {
     background: white;
     width: 100%;
