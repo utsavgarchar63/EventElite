@@ -45,13 +45,15 @@
           <!-- Venue -->
           <v-col cols="12" class="pa-0 mb-3">
             <v-label>Venue</v-label>
-            <v-text-field v-model="venue" placeholder="Enter venue name" variant="outlined" hide-details="auto" color="primary" />
+            <v-text-field v-model="venue" placeholder="Enter venue name" variant="outlined" hide-details="auto"
+              color="primary" />
           </v-col>
 
           <!-- Location -->
           <v-col cols="12" class="pa-0 mb-3">
             <v-label>Location</v-label>
-            <v-textarea v-model="location" style="border-radius: 8px;" placeholder="Enter event location" variant="outlined" hide-details="auto" color="primary" />
+            <v-textarea v-model="location" style="border-radius: 8px;" placeholder="Enter event location"
+              variant="outlined" hide-details="auto" color="primary" />
           </v-col>
 
           <!-- Buttons -->
@@ -79,13 +81,24 @@ import "flatpickr/dist/flatpickr.css";
 
 const store = useEventStore();
 const snackbar = useSnackbarStore();
+const startDate = ref(store.formData.eventDetails?.start_datetime ? new Date(store.formData.eventDetails.start_datetime) : null);
+const endDate = ref(store.formData.eventDetails?.end_datetime ? new Date(store.formData.eventDetails.end_datetime) : null);
 
-const startDate = ref(null);
-const endDate = ref(null);
-const startTime = ref(null);
-const endTime = ref(null);
-const venue = ref("");
-const location = ref("");
+// Extract time in "HH:MM" format if stored
+const startTime = ref(
+  store.formData.eventDetails?.start_datetime
+    ? store.formData.eventDetails.start_datetime.split(" ")[1].slice(0, 5)
+    : null
+);
+const endTime = ref(
+  store.formData.eventDetails?.end_datetime
+    ? store.formData.eventDetails.end_datetime.split(" ")[1].slice(0, 5)
+    : null
+);
+
+const venue = ref(store.formData.eventDetails?.venue || "");
+const location = ref(store.formData.eventDetails?.venue_address || "");
+
 
 // Flatpickr configs
 const dateConfig = { dateFormat: "Y-m-d", allowInput: true };

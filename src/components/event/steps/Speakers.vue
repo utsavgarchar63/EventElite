@@ -45,36 +45,26 @@
                     <!-- Location -->
                     <v-col cols="12" md="6" class="pa-2">
                         <v-text-field label="Location" placeholder="Room 101" v-model="speaker.location"
-                            :readonly="speaker.isSelected" :disabled="speaker.isSelected" variant="outlined" />
+                            :readonly="speaker.isSelected" variant="outlined" />
                     </v-col>
 
-                    <!-- Start Date -->
                     <v-col cols="12" md="6" class="pa-2">
-                        <v-menu v-model="speaker.startMenu" :close-on-content-click="false"
-                            transition="scale-transition" offset-y max-width="290">
-                            <template #activator="{ props }">
-                                <v-text-field v-bind="props" v-model="speaker.startFormatted" label="Start Date Time"
-                                    placeholder="Select Start Date Time" readonly append-inner-icon="mdi-calendar"
-                                    variant="outlined" />
-                            </template>
-                            <v-date-picker v-model="speaker.startDate"
-                                @update:model-value="val => formatDate(val, speaker, 'start')" />
-                        </v-menu>
+                        <div class="vuetify-flatpickr">
+                            <FlatPickr v-model="speaker.startFormatted" class="vuetify-flatpickr"
+                                :config="{ enableTime: true, dateFormat: 'Y-m-d H:i', time_24hr: true }"
+                                placeholder="Select Start Date & Time" />
+                        </div>
                     </v-col>
 
-                    <!-- End Date -->
                     <v-col cols="12" md="6" class="pa-2">
-                        <v-menu v-model="speaker.endMenu" :close-on-content-click="false" transition="scale-transition"
-                            offset-y max-width="290">
-                            <template #activator="{ props }">
-                                <v-text-field v-bind="props" v-model="speaker.endFormatted" label="End Date Time"
-                                    placeholder="Select End Date Time" readonly append-inner-icon="mdi-calendar"
-                                    variant="outlined" />
-                            </template>
-                            <v-date-picker v-model="speaker.endDate"
-                                @update:model-value="val => formatDate(val, speaker, 'end')" />
-                        </v-menu>
+                        <div class="vuetify-flatpickr">
+                            <FlatPickr v-model="speaker.endFormatted" class="vuetify-flatpickr"
+                                :config="{ enableTime: true, dateFormat: 'Y-m-d H:i', time_24hr: true }"
+                                placeholder="Select End Date & Time" />
+                        </div>
                     </v-col>
+
+
                 </v-row>
 
 
@@ -96,11 +86,13 @@
         </div>
     </v-container>
 </template>
-<script setup>import { ref, onMounted } from 'vue';
+<script setup>
+import FlatPickr from 'vue-flatpickr-component';
+import 'flatpickr/dist/flatpickr.css';
+import { ref, onMounted, watch } from 'vue';
 import { useEventStore } from '@/store/eventStore';
-import api from '@/plugins/axios';
 import { useSnackbarStore } from '@/store/snackbar';
-import { watch } from 'vue';
+import api from '@/plugins/axios';
 
 const store = useEventStore();
 const snackbar = useSnackbarStore();
@@ -111,10 +103,8 @@ const speakers = ref(
         ? store.formData.speakers.map(s => ({
             ...s,
             selectedId: s.id || s.selectedId || null,
-            startMenu: false,
-            endMenu: false,
-            startFormatted: s.startDate ? new Date(s.startDate).toLocaleString() : '',
-            endFormatted: s.endDate ? new Date(s.endDate).toLocaleString() : '',
+            startFormatted: s.startDate ? new Date(s.startDate) : null,
+            endFormatted: s.endDate ? new Date(s.endDate) : null,
             isSelected: !!s.id
         }))
         : [
@@ -125,36 +115,27 @@ const speakers = ref(
                 email: '',
                 phone: '',
                 location: '',
-                startDate: null,
-                endDate: null,
-                startFormatted: '',
-                endFormatted: '',
-                startMenu: false,
-                endMenu: false
+                startFormatted: null,
+                endFormatted: null
             }
         ]
 );
 store.formData.speakers = speakers.value;
 
-// API fetched speakers
 const allSpeakers = ref([]);
-
-// Fetch speakers from API
+const startDateTime = ref(null);
+const endDateTime = ref(null);
 const fetchSpeakers = async () => {
     try {
         const res = await api.get('/events/get-speakers');
-        if (res.data.success) {
-            allSpeakers.value = res.data.data;
-        }
+        if (res.data.success) allSpeakers.value = res.data.data;
     } catch (err) {
         snackbar.show('Failed to fetch speakers', 'error');
     }
 };
 
-// Fill speaker form when selected from dropdown
 const fillSpeakerData = (id, index) => {
     const speakerData = allSpeakers.value.find(s => s.id === id);
-    console.log(id)
     if (speakerData) {
         speakers.value[index] = {
             ...speakers.value[index],
@@ -163,7 +144,7 @@ const fillSpeakerData = (id, index) => {
             email: speakerData.email,
             phone: speakerData.phone,
             location: speakerData.location || '',
-            isSelected: true // prevents editing
+            isSelected: true
         };
     }
 };
@@ -172,14 +153,11 @@ watch(
     () => speakers.value.map(s => s.selectedId),
     (newValues, oldValues) => {
         newValues.forEach((id, index) => {
-            if (id && id !== oldValues[index]) {
-                fillSpeakerData(id, index);
-            }
+            if (id && id !== oldValues[index]) fillSpeakerData(id, index);
         });
     }
 );
 
-// Add new speaker
 const addSpeaker = () => {
     speakers.value.push({
         id: null,
@@ -188,28 +166,13 @@ const addSpeaker = () => {
         email: '',
         phone: '',
         location: '',
-        startDate: null,
-        endDate: null,
-        startFormatted: '',
-        endFormatted: '',
-        startMenu: false,
-        endMenu: false
+        startFormatted: null,
+        endFormatted: null
     });
 };
 
-// Remove speaker
-const removeSpeaker = (index) => {
-    speakers.value.splice(index, 1);
-};
+const removeSpeaker = (index) => speakers.value.splice(index, 1);
 
-// Date formatting
-const formatDate = (val, speaker, type) => {
-    const formatted = new Date(val).toLocaleString();
-    if (type === 'start') speaker.startFormatted = formatted;
-    else speaker.endFormatted = formatted;
-};
-
-// Format date for API
 const formatForApi = (date) => {
     if (!date) return null;
     const d = new Date(date);
@@ -217,7 +180,6 @@ const formatForApi = (date) => {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
-// Submit speakers
 const handleSubmit = async () => {
     try {
         const payload = {
@@ -228,8 +190,12 @@ const handleSubmit = async () => {
                 email: s.email,
                 phone: s.phone,
                 location: s.location,
-                start_datetime: formatForApi(s.startDate),
-                end_datetime: formatForApi(s.endDate)
+                start_datetime: startDateTime.value
+                    ? new Date(startDateTime.value).toISOString().slice(0, 19).replace("T", " ")
+                    : null,
+                end_datetime: endDateTime.value
+                    ? new Date(endDateTime.value).toISOString().slice(0, 19).replace("T", " ")
+                    : null,
             }))
         };
 
@@ -249,21 +215,54 @@ const handleSubmit = async () => {
     }
 };
 
-onMounted(() => {
-    fetchSpeakers();
-});
-
+onMounted(() => fetchSpeakers());
 </script>
 
 <style scoped>
-.form-wrapper {
+.vuetify-flatpickr input {
     width: 100%;
-    max-width: 700px;
+    height: 56px;
+    padding: 0 16px;
+    border: 1px solid #c7c7c7;
+    border-radius: 8px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #333;
+    background: #fff;
+    transition: border-color 0.2s ease;
 }
 
-@media (max-width: 600px) {
+.vuetify-flatpickr input:focus {
+    border-color: #1976d2;
+    outline: none;
+    box-shadow: 0 0 0 1px #1976d2;
+}
+
+.vuetify-flatpickr input::placeholder {
+    color: #9e9e9e;
+}
+
+.form-wrapper {
+    width: 100%;
+    max-width: 750px;
+    padding: 24px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.v-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 4px;
+    display: block;
+}
+
+@media (max-width: 768px) {
     .form-wrapper {
-        max-width: 100% !important;
+        padding: 16px;
+        margin: 0 12px;
     }
 }
 </style>
