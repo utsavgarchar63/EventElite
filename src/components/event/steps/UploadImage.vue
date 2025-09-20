@@ -216,7 +216,9 @@ const handleSubmit = async () => {
     }
 };
 
-const handleCancel = () => store.previousStep?.();
+const handleCancel = () => {
+    store.prevStep();
+}
 </script>
 
 <style scoped>

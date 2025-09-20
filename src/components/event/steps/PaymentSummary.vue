@@ -169,6 +169,7 @@ const handleSubmit = async () => {
 const handleCancel = () => {
     showNewCard.value = false;
     newCard.value = { name: '', number: '', expiry: '', cvv: '', save: false };
+    store.prevStep();
 };
 </script>
 

@@ -45,7 +45,7 @@
                     <!-- Location -->
                     <v-col cols="12" md="6" class="pa-2">
                         <v-text-field label="Location" placeholder="Room 101" v-model="speaker.location"
-                            :readonly="speaker.isSelected" variant="outlined" />
+                             variant="outlined" />
                     </v-col>
 
                     <v-col cols="12" md="6" class="pa-2">
@@ -132,6 +132,11 @@ const fetchSpeakers = async () => {
     } catch (err) {
         snackbar.show('Failed to fetch speakers', 'error');
     }
+};
+
+const handleCancel = () => {
+
+    store.prevStep();
 };
 
 const fillSpeakerData = (id, index) => {

@@ -156,6 +156,7 @@ watch(search, () => {
     page.value = 1;
     fetchVendors();
 });
+
 </script>
 
 <style scoped>

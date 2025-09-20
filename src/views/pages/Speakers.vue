@@ -133,6 +133,7 @@ const goToSpeakerDetailFromRow = (event, item) => {
     goToSpeakerDetail(item.item.id);
 };
 
+
 // Client-side search
 const filteredSpeakers = computed(() => {
     if (!search.value) return speakers.value;

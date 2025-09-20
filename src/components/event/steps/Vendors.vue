@@ -226,6 +226,7 @@ const handleCancel = () => {
         businessLogo: null,
         selectedId: null
     }];
+    store.prevStep();
     store.formData.vendors = vendors.value;
 };
 

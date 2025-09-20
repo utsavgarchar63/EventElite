@@ -183,6 +183,7 @@ const handleSubmit = async () => {
 // Reset form
 const handleCancel = () => {
     initSponsors();
+    store.prevStep();
 };
 
 onMounted(() => {

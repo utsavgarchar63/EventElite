@@ -204,7 +204,7 @@ const handleSubmit = async () => {
 // cancel
 const handleGoBack = () => {
     organizerName.value = '';
-    phone.value = '';
+    phoneNumber.value = '';
     email.value = '';
     description.value = '';
     countryCode.value = '+91';

@@ -73,7 +73,7 @@
     </v-container>
 </template>
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import api from '@/plugins/axios';
 import { useEventStore } from '@/store/eventStore';
 import { useSnackbarStore } from '@/store/snackbar';
@@ -128,6 +128,15 @@ const removeTicket = (index) => {
     }
 };
 
+watch(ticketType, (newVal) => {
+    // If Free Ticket selected → mark all as free & clear price
+    tickets.value = tickets.value.map((t) => ({
+        ...t,
+        isFree: newVal === 'Free Ticket',
+        price: newVal === 'Free Ticket' ? '' : t.price
+    }));
+});
+
 
 // Submit tickets
 const handleSubmit = async () => {
@@ -167,6 +176,7 @@ const handleSubmit = async () => {
 // Go back / cancel
 const handleCancel = () => {
     store.resetTickets?.();
+    store.prevStep();
 };
 </script>
 
