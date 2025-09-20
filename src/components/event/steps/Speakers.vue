@@ -7,75 +7,77 @@
             </div>
 
             <v-form @submit.prevent="handleSubmit" class="ms-lg-3">
-                <v-row v-for="(speaker, index) in store.formData.speakers" :key="index" class="mb-1">
-                    <v-col cols="12 pa-0 mb-3">
-                        <h4 class="font-weight-bold text-h4">Speaker {{ index + 1 }}</h4>
+                <v-row v-for="(speaker, index) in store.formData.speakers" :key="index" class="mb-4">
+                    <!-- Header with Delete -->
+                    <v-col cols="12" class="pa-0 mb-3">
+                        <div class="d-flex justify-space-between align-center">
+                            <h4 class="font-weight-bold text-h4">Speaker {{ index + 1 }}</h4>
+                            <v-btn icon color="error" @click="removeSpeaker(index)" v-if="speakers.length > 1">
+                                <v-icon>mdi-delete</v-icon>
+                            </v-btn>
+                        </div>
                     </v-col>
 
-                    <v-col cols="12" md="6" class="pa-0 ma-0 pe-lg-2">
-                        <v-label>Name</v-label>
-                        <v-text-field placeholder="John Doe" v-model="speaker.name" variant="outlined" />
-                    </v-col>
-                    <v-col cols="12" md="6" class="pa-0 ma-0 ps-lg-2">
-                        <v-label>Email</v-label>
-                        <v-text-field v-model="speaker.email" placeholder="john@gmail.com" variant="outlined" />
+                    <!-- Select existing speaker -->
+                    <v-col cols="12" md="12" class="pa-2">
+                        <v-select :items="allSpeakers" item-title="name" item-value="id" v-model="speaker.selectedId"
+                            label="Select a speaker" @change="id => fillSpeakerData(id, index)"
+                            :disabled="speaker.isSelected" dense variant="outlined" />
                     </v-col>
 
-                    <v-col cols="12" md="6" class="pa-0 ma-0 pe-lg-2">
-                        <v-label>Phone Number</v-label>
-                        <v-text-field v-model="speaker.phone" placeholder="xxx-xxx-xxxx" variant="outlined" />
-                    </v-col>
-                    <v-col cols="12" md="6" class="pa-0 ma-0 ps-lg-2">
-                        <v-label>Location</v-label>
-                        <v-text-field v-model="speaker.location" placeholder="Room 101" variant="outlined" />
+                    <!-- Name -->
+                    <v-col cols="12" md="6" class="pa-2">
+                        <v-text-field label="Name" placeholder="John Doe" v-model="speaker.name"
+                            :readonly="speaker.isSelected" variant="outlined" />
                     </v-col>
 
-                    <v-col cols="12" md="6" class="pa-0 ma-0 pe-lg-2">
-                        <v-menu
-                            v-model="speaker.startMenu"
-                            :close-on-content-click="false"
-                            transition="scale-transition"
-                            offset-y
-                            max-width="290"
-                        >
+                    <!-- Email -->
+                    <v-col cols="12" md="6" class="pa-2">
+                        <v-text-field label="Email" placeholder="john@gmail.com" v-model="speaker.email"
+                            :readonly="speaker.isSelected" variant="outlined" />
+                    </v-col>
+
+                    <!-- Phone -->
+                    <v-col cols="12" md="6" class="pa-2">
+                        <v-text-field label="Phone Number" placeholder="xxx-xxx-xxxx" v-model="speaker.phone"
+                            :readonly="speaker.isSelected" variant="outlined" />
+                    </v-col>
+
+                    <!-- Location -->
+                    <v-col cols="12" md="6" class="pa-2">
+                        <v-text-field label="Location" placeholder="Room 101" v-model="speaker.location"
+                            :readonly="speaker.isSelected" variant="outlined" />
+                    </v-col>
+
+                    <!-- Start Date -->
+                    <v-col cols="12" md="6" class="pa-2">
+                        <v-menu v-model="speaker.startMenu" :close-on-content-click="false"
+                            transition="scale-transition" offset-y max-width="290">
                             <template #activator="{ props }">
-                                <v-label for="">Start Date Time</v-label>
-                                <v-text-field
-                                    v-bind="props"
-                                    v-model="speaker.startFormatted"
-                                    placeholder="Select Start Date Time"
-                                    readonly
-                                    append-inner-icon="mdi-calendar"
-                                    variant="outlined"
-                                />
+                                <v-text-field v-bind="props" v-model="speaker.startFormatted" label="Start Date Time"
+                                    placeholder="Select Start Date Time" readonly append-inner-icon="mdi-calendar"
+                                    variant="outlined" />
                             </template>
-                            <v-date-picker v-model="speaker.startDate" @update:model-value="(val) => formatDate(val, speaker, 'start')" />
+                            <v-date-picker v-model="speaker.startDate"
+                                @update:model-value="val => formatDate(val, speaker, 'start')" />
                         </v-menu>
                     </v-col>
 
-                    <v-col cols="12" md="6" class="pa-0 ma-0 ps-lg-2">
-                        <v-menu
-                            v-model="speaker.endMenu"
-                            :close-on-content-click="false"
-                            transition="scale-transition"
-                            offset-y
-                            max-width="290"
-                        >
+                    <!-- End Date -->
+                    <v-col cols="12" md="6" class="pa-2">
+                        <v-menu v-model="speaker.endMenu" :close-on-content-click="false" transition="scale-transition"
+                            offset-y max-width="290">
                             <template #activator="{ props }">
-                                <v-label for="">End Date Time</v-label>
-                                <v-text-field
-                                    v-bind="props"
-                                    v-model="speaker.endFormatted"
-                                    placeholder="Select End Date Time"
-                                    readonly
-                                    append-inner-icon="mdi-calendar"
-                                    variant="outlined"
-                                />
+                                <v-text-field v-bind="props" v-model="speaker.endFormatted" label="End Date Time"
+                                    placeholder="Select End Date Time" readonly append-inner-icon="mdi-calendar"
+                                    variant="outlined" />
                             </template>
-                            <v-date-picker v-model="speaker.endDate" @update:model-value="(val) => formatDate(val, speaker, 'end')" />
+                            <v-date-picker v-model="speaker.endDate"
+                                @update:model-value="val => formatDate(val, speaker, 'end')" />
                         </v-menu>
                     </v-col>
                 </v-row>
+
 
                 <div @click="store.addSpeaker" class="d-flex align-center mb-4" style="cursor: pointer">
                     <v-btn icon color="primary" class="mr-2">
@@ -86,7 +88,8 @@
 
                 <v-row class="mt-4">
                     <v-col cols="12" class="d-flex justify-end">
-                        <v-btn color="primary" size="large" variant="outlined" class="mr-2" @click="handleCancel">Go Back</v-btn>
+                        <v-btn color="primary" size="large" variant="outlined" class="mr-2" @click="handleCancel">Go
+                            Back</v-btn>
                         <v-btn type="submit" color="primary" size="large">Save & Next</v-btn>
                     </v-col>
                 </v-row>
@@ -94,42 +97,75 @@
         </div>
     </v-container>
 </template>
-<script setup>
+<script setup>import { ref, onMounted } from 'vue';
 import { useEventStore } from '@/store/eventStore';
-import { ref } from 'vue';
-import axios from 'axios';
 import api from '@/plugins/axios';
 import { useSnackbarStore } from '@/store/snackbar';
 
 const store = useEventStore();
 const snackbar = useSnackbarStore();
-// Reference speakers from store
-const speakers = ref(
-    store.formData.speakers.length
-        ? store.formData.speakers
-        : [
-              {
-                  id: null,
-                  name: '',
-                  email: '',
-                  phone: '',
-                  location: '',
-                  startDate: null,
-                  endDate: null,
-                  startFormatted: '',
-                  endFormatted: '',
-                  startMenu: false,
-                  endMenu: false
-              }
-          ]
-);
+
+// Form speakers
+const speakers = ref([
+    {
+        id: null,
+        selectedId: null, // for dropdown selection
+        name: '',
+        email: '',
+        phone: '',
+        location: '',
+        startDate: null,
+        endDate: null,
+        startFormatted: '',
+        endFormatted: '',
+        startMenu: false,
+        endMenu: false
+    }
+]);
 
 store.formData.speakers = speakers.value;
 
-// Add new speaker row
+// API fetched speakers
+const allSpeakers = ref([]);
+
+// Fetch speakers from API
+const fetchSpeakers = async () => {
+    try {
+        const res = await api.get('/events/get-speakers', {
+            headers: {
+                Authorization: 'Bearer 32|B67anf13U5VlgmTTbTI4Bi4P2IoPa3tKeyHsilnh9189cce7'
+            }
+        });
+        if (res.data.success) {
+            allSpeakers.value = res.data.data;
+        }
+    } catch (err) {
+        snackbar.show('Failed to fetch speakers', 'error');
+    }
+};
+
+// Fill speaker form when selected from dropdown
+const fillSpeakerData = (id, index) => {
+    const speakerData = allSpeakers.value.find(s => s.id === id);
+    console.log(id)
+    if (speakerData) {
+        speakers.value[index] = {
+            ...speakers.value[index],
+            id: speakerData.id,
+            name: speakerData.name,
+            email: speakerData.email,
+            phone: speakerData.phone,
+            location: speakerData.location || '',
+            isSelected: true // prevents editing
+        };
+    }
+};
+
+// Add new speaker
 const addSpeaker = () => {
     speakers.value.push({
         id: null,
+        selectedId: null,
         name: '',
         email: '',
         phone: '',
@@ -141,32 +177,34 @@ const addSpeaker = () => {
         startMenu: false,
         endMenu: false
     });
-    store.formData.speakers = speakers.value;
 };
 
-// Format date for display
+// Remove speaker
+const removeSpeaker = (index) => {
+    speakers.value.splice(index, 1);
+};
+
+// Date formatting
 const formatDate = (val, speaker, type) => {
     const formatted = new Date(val).toLocaleString();
     if (type === 'start') speaker.startFormatted = formatted;
     else speaker.endFormatted = formatted;
 };
 
-// Convert JS date → API format (YYYY-MM-DD HH:mm:ss)
+// Format date for API
 const formatForApi = (date) => {
     if (!date) return null;
     const d = new Date(date);
     const pad = (n) => (n < 10 ? '0' + n : n);
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
-        d.getHours()
-    )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
-// Submit speakers to API
+// Submit speakers
 const handleSubmit = async () => {
     try {
         const payload = {
             event_id: store.formData.eventType.id,
-            speakers: speakers.value.map((s) => ({
+            speakers: speakers.value.map(s => ({
                 id: s.id || null,
                 name: s.name,
                 email: s.email,
@@ -178,7 +216,6 @@ const handleSubmit = async () => {
         };
 
         const res = await api.post('/events/speakers', payload);
-
         if (res.data.status) {
             store.formData.speakers = res.data.data;
             store.nextStep();
@@ -194,9 +231,10 @@ const handleSubmit = async () => {
     }
 };
 
-const handleCancel = () => {
-    store.resetSpeakers();
-};
+onMounted(() => {
+    fetchSpeakers();
+});
+
 </script>
 
 <style scoped>

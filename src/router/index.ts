@@ -3,6 +3,7 @@ import MainRoutes from './MainRoutes';
 import AuthRoutes from './AuthRoutes';
 import { useAuthStore } from '@/store/authStore';
 
+
 declare module 'vue-router' {
     interface RouteMeta {
         requiresAuth?: boolean;
@@ -22,56 +23,16 @@ export const router = createRouter({
     ]
 });
 
-
-// router.beforeEach((to, from, next) => {
-//     const authStore = useAuthStore();
-//     const isAuthenticated = !!authStore.token;
-//     const userRole = authStore.role || localStorage.getItem('role');
-
-//     // If NOT authenticated
-//     if (!isAuthenticated) {
-//         if (to.path === '/' || to.meta.requiresAuth) {
-//             return next('/auth/login');
-//         }
-//         return next();
-//     }
-
-//     // If authenticated
-//     if (isAuthenticated) {
-//         // Redirect root `/` or login to role-based dashboard
-//         if (to.path === '/' || to.path === '/auth/login') {
-//             if (userRole === 'super_admin') {
-//                 return next('/super-admin/dashboard');
-//             } else if (userRole === 'admin') {
-//                 return next('/admin/dashboard');
-//             } else {
-//                 return next('/'); // default fallback for other roles
-//             }
-//         }
-
-//         // Handle role restrictions
-//         if (Array.isArray(to.meta.roles)) {
-//             // If user role is NOT in allowed roles
-//             if (!to.meta.roles.includes(userRole!) && userRole !== 'super_admin') {
-//                 if (userRole === 'admin') {
-//                     return next('/admin/dashboard');
-//                 } else if (userRole === 'super_admin') {
-//                     // super_admin has access to admin routes
-//                     return next();
-//                 } else {
-//                     return next('/auth/login');
-//                 }
-//             }
-//         }
-//     }
-
-//     return next();
-// });
-
+    
 router.beforeEach((to, from, next) => {
     const authStore = useAuthStore();
     const isAuthenticated = !!authStore.token;
     const userRole = authStore.role || localStorage.getItem('role');
+
+    // Remove organization_id when leaving admin dashboard, only for admin
+    if (userRole === 'admin' && from.path.startsWith('/admin/dashboard') && !to.path.startsWith('/admin/dashboard')) {
+        localStorage.removeItem('organization_id');
+    }
 
     // If NOT authenticated
     if (!isAuthenticated) {

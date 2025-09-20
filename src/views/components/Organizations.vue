@@ -128,6 +128,7 @@ const updateFormattedDate = () => {
 };
 
 const goToAdminDashboard = (_event: any, { item }: { item: any }) => {
+     localStorage.setItem('organization_id', item.id);
      router.push({ name: 'AdminDashboardDetail', params: { id: item.id } });
 };
 

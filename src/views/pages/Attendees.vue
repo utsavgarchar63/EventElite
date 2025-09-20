@@ -62,10 +62,11 @@ const headers = [
 const fetchAttendees = async () => {
     loading.value = true;
     const userString = localStorage.getItem('user'); // get the string
+    const org_id = localStorage.getItem('organization_id'); // get the string
     const user = userString ? JSON.parse(userString) : null;
 
     try {
-        const response = await api.get(`/attendees/list/${user.organization_id}`, {
+        const response = await api.get(`/attendees/list/${user.organization_id || org_id}`, {
             params: {
                 page: page.value,
                 search: search.value || ''

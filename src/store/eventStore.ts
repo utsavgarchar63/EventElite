@@ -10,6 +10,8 @@ export const useEventStore = defineStore('event', {
             eventDetails: {},
             speakers: [
                 {
+                    id: null,
+                    selectedId: null,
                     name: '',
                     email: '',
                     phone: '',
@@ -19,7 +21,8 @@ export const useEventStore = defineStore('event', {
                     startFormatted: '',
                     endFormatted: '',
                     startMenu: false,
-                    endMenu: false
+                    endMenu: false,
+                    isSelected: false,
                 }
             ],
             sponsors: [],
@@ -49,6 +52,8 @@ export const useEventStore = defineStore('event', {
 
         addSpeaker() {
             this.formData.speakers.push({
+                id: null,
+                selectedId: null,
                 name: '',
                 email: '',
                 phone: '',
@@ -58,13 +63,16 @@ export const useEventStore = defineStore('event', {
                 startFormatted: '',
                 endFormatted: '',
                 startMenu: false,
-                endMenu: false
+                endMenu: false,
+                isSelected: false
             });
             // this.saveToLocalStorage();
         },
         resetSpeakers() {
             this.formData.speakers = [
                 {
+                    id: null,
+                    selectedId: null,
                     name: '',
                     email: '',
                     phone: '',
@@ -74,7 +82,8 @@ export const useEventStore = defineStore('event', {
                     startFormatted: '',
                     endFormatted: '',
                     startMenu: false,
-                    endMenu: false
+                    endMenu: false,
+                    isSelected: false
                 }
             ];
             // this.saveToLocalStorage();
