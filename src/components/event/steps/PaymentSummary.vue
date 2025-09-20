@@ -14,12 +14,9 @@
                         <div class="mb-4">
                             <h4 class="font-weight-bold text-h" style="color: #7588a1">Saved Cards</h4>
                             <v-radio-group v-model="selectedCard" class="mt-0">
-                                <v-radio
-                                    v-for="card in savedCards"
-                                    :key="card.id"
+                                <v-radio v-for="card in savedCards" :key="card.id"
                                     :label="`${card.brand} ****${card.last4} - Expires: ${card.expiry}`"
-                                    :value="card"
-                                />
+                                    :value="card" />
                             </v-radio-group>
                         </div>
 
@@ -38,19 +35,23 @@
                                     </v-col>
                                     <v-col cols="12" class="pa-0 ma-0">
                                         <v-label>Name on Card</v-label>
-                                        <v-text-field v-model="newCard.name" placeholder="Enter card holder name" variant="outlined" />
+                                        <v-text-field v-model="newCard.name" placeholder="Enter card holder name"
+                                            variant="outlined" />
                                     </v-col>
                                     <v-col cols="12" class="pa-0 ma-0">
                                         <v-label>Card Number</v-label>
-                                        <v-text-field v-model="newCard.number" placeholder="0000 0000 0000 0000" variant="outlined" />
+                                        <v-text-field v-model="newCard.number" placeholder="0000 0000 0000 0000"
+                                            variant="outlined" />
                                     </v-col>
                                     <v-col cols="12" md="6" class="pa-0 ma-0 pe-lg-2">
                                         <v-label>Valid Through</v-label>
-                                        <v-text-field v-model="newCard.expiry" placeholder="MM/YYYY" variant="outlined" />
+                                        <v-text-field v-model="newCard.expiry" placeholder="MM/YYYY"
+                                            variant="outlined" />
                                     </v-col>
                                     <v-col cols="12" md="6" class="pa-0 ma-0 ps-lg-2">
                                         <v-label>CVV</v-label>
-                                        <v-text-field v-model="newCard.cvv" placeholder="Enter CVV" variant="outlined" />
+                                        <v-text-field v-model="newCard.cvv" placeholder="Enter CVV"
+                                            variant="outlined" />
                                     </v-col>
                                     <v-col cols="12" class="pa-0 ma-0">
                                         <v-checkbox v-model="newCard.save" label="Save this card" />
@@ -62,7 +63,8 @@
                         <!-- Buttons -->
                         <v-row class="mt-4">
                             <v-col cols="12" class="d-flex justify-end">
-                                <v-btn color="primary" size="large" variant="outlined" class="mr-2" @click="handleCancel">Cancel</v-btn>
+                                <v-btn color="primary" size="large" variant="outlined" class="mr-2"
+                                    @click="handleCancel">Cancel</v-btn>
                                 <v-btn type="submit" color="primary" size="large">Save & Next</v-btn>
                             </v-col>
                         </v-row>
@@ -81,20 +83,23 @@
                         </v-list-item>
                         <v-list-item>
                             <v-list-item-title><strong>Total</strong></v-list-item-title>
-                            <v-list-item-subtitle
-                                ><strong>${{ totalAmount }}</strong></v-list-item-subtitle
-                            >
+                            <v-list-item-subtitle><strong>${{ totalAmount }}</strong></v-list-item-subtitle>
                         </v-list-item>
+
                     </v-list>
                 </div>
             </v-col>
         </v-row>
     </v-container>
 </template>
-
 <script setup>
+import api from '@/plugins/axios';
 import { router } from '@/router';
-import { ref } from 'vue';
+import { useEventStore } from '@/store/eventStore';
+import { ref, onMounted } from 'vue';
+
+// 🔹 States
+const store = useEventStore();
 
 const showNewCard = ref(false);
 const selectedCard = ref(null);
@@ -116,22 +121,52 @@ const savedCards = ref([
     }
 ]);
 
-const paymentSummary = ref([
-    { label: 'Enterprise event', amount: '$499.00' },
-    { label: 'Addon Speaker', amount: '$29.99' },
-    { label: 'Addon Sponsor', amount: '$29.99' },
-    { label: 'Addon Vendor', amount: '$29.99' },
-    { label: 'Taxes', amount: '$100.00' }
-]);
+// 🔹 Initially empty
+const paymentSummary = ref([]);
+const totalAmount = ref(0);
 
-const totalAmount = ref('$688.97');
+// 🔹 Fetch Payment Summary API
+const fetchPaymentSummary = async () => {
+    try {
+        const response = await api.get(
+            `/events/get-payment-summary/${store.formData.eventType.id}`
+        );
+        if (response.data.status) {
+            const d = response.data.data;
+            console.log(d)
+            // Map API to UI
+            paymentSummary.value = [
+                { label: 'Enterprise event', amount: `$${parseFloat(d.event).toFixed(2)}` },
+                { label: 'Addon Speaker', amount: `$${parseFloat(d.speaker_addon).toFixed(2)}` },
+                { label: 'Addon Sponsor', amount: `$${parseFloat(d.sponsor_addon).toFixed(2)}` },
+                { label: 'Addon Vendor', amount: `$${parseFloat(d.vendor_addon).toFixed(2)}` },
+            ];
 
+            // Calculate total
+            const total =
+                parseFloat(d.event) +
+                parseFloat(d.speaker_addon) +
+                parseFloat(d.sponsor_addon) +
+                parseFloat(d.vendor_addon);
+
+            totalAmount.value = total.toFixed(2);
+        }
+    } catch (err) {
+        console.error('Payment summary fetch error:', err);
+    }
+};
+
+// 🔹 On mount fetch payment summary
+onMounted(fetchPaymentSummary);
+
+// 🔹 Submit Handler
 const handleSubmit = async () => {
-    // Handle payment submission logic here
-    router.push('/admin/event/success'); 
+    // your payment logic
+    router.push('/admin/event/success');
     console.log('Payment submitted:', selectedCard.value || newCard.value);
 };
 
+// 🔹 Cancel
 const handleCancel = () => {
     showNewCard.value = false;
     newCard.value = { name: '', number: '', expiry: '', cvv: '', save: false };
