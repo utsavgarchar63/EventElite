@@ -94,9 +94,11 @@ const fetchVendors = async () => {
     loading.value = true;
     const userString = localStorage.getItem('user'); // get the string
     const user = userString ? JSON.parse(userString) : null;
+    const org_id = localStorage.getItem('organization_id'); // get the string
+
     try {
         console.log(user.organization_id)
-        const response = await api.get(`/vendors/list/${user.organization_id}`, {
+        const response = await api.get(`/vendors/list/${user.organization_id || org_id}`, {
             // params: {
             //     page: page.value,
             //     search: search.value || '',
