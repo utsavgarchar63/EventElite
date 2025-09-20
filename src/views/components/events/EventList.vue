@@ -8,31 +8,15 @@
 
                     <!-- Search -->
 
-                    <v-text-field
-                        v-model="search"
-                        placeholder="Search by Name, Venue"
-                        variant="outlined"
-                        hide-details
-                        density="compact"
-                        class="search-bar"
-                        clearable
-                        append-inner-icon="mdi-magnify"
-                    />
+                    <v-text-field v-model="search" placeholder="Search by Name, Venue" variant="outlined" hide-details
+                        density="compact" class="search-bar" clearable append-inner-icon="mdi-magnify" />
 
                     <!-- Date Picker -->
                     <v-menu v-model="menu" :close-on-content-click="false" transition="scale-transition" offset-y>
                         <template #activator="{ props }">
-                            <v-text-field
-                                class="date-picker"
-                                v-bind="props"
-                                v-model="formattedDate"
-                                label="Select Date Range"
-                                density="compact"
-                                variant="outlined"
-                                hide-details
-                                readonly
-                                prepend-inner-icon="mdi-calendar"
-                            />
+                            <v-text-field class="date-picker" v-bind="props" v-model="formattedDate"
+                                label="Select Date Range" density="compact" variant="outlined" hide-details readonly
+                                prepend-inner-icon="mdi-calendar" />
                         </template>
                         <v-card>
                             <v-date-picker v-model="dates" range scrollable @update:model-value="updateFormattedDate" />
@@ -44,16 +28,8 @@
                     </v-menu>
 
                     <!-- View Options -->
-                    <v-select
-                        v-model="view"
-                        :items="viewOptions"
-                        dense
-                        variant="outlined"
-                        hide-details
-                        class="view-select"
-                        density="compact"
-                        prepend-inner-icon="mdi-view-list"
-                    />
+                    <v-select v-model="view" :items="viewOptions" dense variant="outlined" hide-details
+                        class="view-select" density="compact" prepend-inner-icon="mdi-view-list" />
 
                     <!-- Filter Icon -->
                     <v-btn icon class="filter-btn" @click="openFilterDialog">
@@ -69,32 +45,21 @@
 
                         <v-card style="width: 350px; padding: 15px; border-radius: 10px !important">
                             <!-- Search Inside Dropdown -->
-                            <v-text-field
-                                v-model="filterSearch"
-                                placeholder="Search fields"
-                                variant="outlined"
-                                density="compact"
-                                clearable
-                                prepend-inner-icon="mdi-magnify"
-                            />
+                            <v-text-field v-model="filterSearch" placeholder="Search fields" variant="outlined"
+                                density="compact" clearable prepend-inner-icon="mdi-magnify" />
 
                             <!-- Checkboxes -->
-                            <v-checkbox v-model="selectAll" label="Select All" color="primary" @change="toggleSelectAll" hide-details />
+                            <v-checkbox v-model="selectAll" label="Select All" color="primary" @change="toggleSelectAll"
+                                hide-details />
 
-                            <v-checkbox
-                                v-for="field in filterOptions"
-                                :key="field.value"
-                                v-model="selectedFilters"
-                                :label="field.label"
-                                :value="field.value"
-                                :disabled="selectAll"
-                                color="primary"
-                                hide-details
-                            />
+                            <v-checkbox v-for="field in filterOptions" :key="field.value" v-model="selectedFilters"
+                                :label="field.label" :value="field.value" :disabled="selectAll" color="primary"
+                                hide-details />
 
                             <!-- Action Buttons -->
                             <div class="d-flex mt-3 gap-2">
-                                <v-btn variant="outlined" class="w-50" color="primary" size="large" @click="clearFilters">Clear</v-btn>
+                                <v-btn variant="outlined" class="w-50" color="primary" size="large"
+                                    @click="clearFilters">Clear</v-btn>
                                 <v-btn color="primary" class="w-50" size="large" @click="applyFilters">Filter</v-btn>
                             </div>
                         </v-card>
@@ -108,11 +73,13 @@
             </div>
 
             <!-- Event Table -->
-            <v-data-table v-else :headers="headers" :items="filteredEvents" hide-default-footer class="custom-table" density="comfortable">
+            <v-data-table v-else :headers="headers" :items="filteredEvents" hide-default-footer class="custom-table"
+                density="comfortable">
                 <template #item.actions="{ item }">
                     <div class="action-wrapper">
                         <!-- Show Three Dot Button Only If Not Active -->
-                        <v-icon color="#525454" v-if="!item.showActions" @click="toggleAction(item)">mdi-dots-horizontal</v-icon>
+                        <v-icon color="#525454" v-if="!item.showActions"
+                            @click="toggleAction(item)">mdi-dots-horizontal</v-icon>
 
                         <!-- Show Action Icons If Active -->
                         <div v-else class="action-icons">
@@ -208,8 +175,9 @@ const fetchEvents = async () => {
     loading.value = true;
     try {
         const userString = localStorage.getItem('user'); // get the string
+        const org_id = localStorage.getItem('organization_id'); // get the string
         const user = userString ? JSON.parse(userString) : null;
-        const response = await api.get(`/events/${props.eventType}/${user.organization_id}`, {
+        const response = await api.get(`/events/${props.eventType}/${user.organization_id || org_id}`, {
             params: { page: page.value, search: search.value || '' }
         });
 

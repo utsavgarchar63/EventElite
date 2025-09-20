@@ -21,32 +21,31 @@
                     <!-- Select existing speaker -->
                     <v-col cols="12" md="12" class="pa-2">
                         <v-select :items="allSpeakers" item-title="name" item-value="id" v-model="speaker.selectedId"
-                            label="Select a speaker" @change="id => fillSpeakerData(id, index)"
-                            :disabled="speaker.isSelected" dense variant="outlined" />
+                            label="Select a speaker" dense variant="outlined" />
                     </v-col>
 
                     <!-- Name -->
                     <v-col cols="12" md="6" class="pa-2">
                         <v-text-field label="Name" placeholder="John Doe" v-model="speaker.name"
-                            :readonly="speaker.isSelected" variant="outlined" />
+                            :readonly="speaker.isSelected" :disabled="speaker.isSelected" variant="outlined" />
                     </v-col>
 
                     <!-- Email -->
                     <v-col cols="12" md="6" class="pa-2">
                         <v-text-field label="Email" placeholder="john@gmail.com" v-model="speaker.email"
-                            :readonly="speaker.isSelected" variant="outlined" />
+                            :readonly="speaker.isSelected" :disabled="speaker.isSelected" variant="outlined" />
                     </v-col>
 
                     <!-- Phone -->
                     <v-col cols="12" md="6" class="pa-2">
                         <v-text-field label="Phone Number" placeholder="xxx-xxx-xxxx" v-model="speaker.phone"
-                            :readonly="speaker.isSelected" variant="outlined" />
+                            :readonly="speaker.isSelected" :disabled="speaker.isSelected" variant="outlined" />
                     </v-col>
 
                     <!-- Location -->
                     <v-col cols="12" md="6" class="pa-2">
                         <v-text-field label="Location" placeholder="Room 101" v-model="speaker.location"
-                            :readonly="speaker.isSelected" variant="outlined" />
+                            :readonly="speaker.isSelected" :disabled="speaker.isSelected" variant="outlined" />
                     </v-col>
 
                     <!-- Start Date -->
@@ -101,28 +100,40 @@
 import { useEventStore } from '@/store/eventStore';
 import api from '@/plugins/axios';
 import { useSnackbarStore } from '@/store/snackbar';
+import { watch } from 'vue';
 
 const store = useEventStore();
 const snackbar = useSnackbarStore();
 
 // Form speakers
-const speakers = ref([
-    {
-        id: null,
-        selectedId: null, // for dropdown selection
-        name: '',
-        email: '',
-        phone: '',
-        location: '',
-        startDate: null,
-        endDate: null,
-        startFormatted: '',
-        endFormatted: '',
-        startMenu: false,
-        endMenu: false
-    }
-]);
-
+const speakers = ref(
+    store.formData.speakers?.length
+        ? store.formData.speakers.map(s => ({
+            ...s,
+            selectedId: s.id || s.selectedId || null,
+            startMenu: false,
+            endMenu: false,
+            startFormatted: s.startDate ? new Date(s.startDate).toLocaleString() : '',
+            endFormatted: s.endDate ? new Date(s.endDate).toLocaleString() : '',
+            isSelected: !!s.id
+        }))
+        : [
+            {
+                id: null,
+                selectedId: null,
+                name: '',
+                email: '',
+                phone: '',
+                location: '',
+                startDate: null,
+                endDate: null,
+                startFormatted: '',
+                endFormatted: '',
+                startMenu: false,
+                endMenu: false
+            }
+        ]
+);
 store.formData.speakers = speakers.value;
 
 // API fetched speakers
@@ -131,11 +142,7 @@ const allSpeakers = ref([]);
 // Fetch speakers from API
 const fetchSpeakers = async () => {
     try {
-        const res = await api.get('/events/get-speakers', {
-            headers: {
-                Authorization: 'Bearer 32|B67anf13U5VlgmTTbTI4Bi4P2IoPa3tKeyHsilnh9189cce7'
-            }
-        });
+        const res = await api.get('/events/get-speakers');
         if (res.data.success) {
             allSpeakers.value = res.data.data;
         }
@@ -160,6 +167,17 @@ const fillSpeakerData = (id, index) => {
         };
     }
 };
+
+watch(
+    () => speakers.value.map(s => s.selectedId),
+    (newValues, oldValues) => {
+        newValues.forEach((id, index) => {
+            if (id && id !== oldValues[index]) {
+                fillSpeakerData(id, index);
+            }
+        });
+    }
+);
 
 // Add new speaker
 const addSpeaker = () => {
@@ -205,7 +223,7 @@ const handleSubmit = async () => {
         const payload = {
             event_id: store.formData.eventType.id,
             speakers: speakers.value.map(s => ({
-                id: s.id || null,
+                id: s.selectedId || s.id || null,
                 name: s.name,
                 email: s.email,
                 phone: s.phone,
