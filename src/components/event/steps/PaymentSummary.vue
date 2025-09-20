@@ -133,7 +133,6 @@ const fetchPaymentSummary = async () => {
         );
         if (response.data.status) {
             const d = response.data.data;
-            console.log(d)
             // Map API to UI
             paymentSummary.value = [
                 { label: 'Enterprise event', amount: `$${parseFloat(d.event).toFixed(2)}` },
