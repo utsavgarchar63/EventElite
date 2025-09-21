@@ -3,11 +3,9 @@
         <div v-for="(step, index) in steps" :key="step.id" class="step-wrapper">
             <div class="step-line" v-if="index !== 0"></div>
 
-            <div
-                class="step-circle"
+            <div class="step-circle"
                 :class="{ active: store.currentStep === step.id, completed: store.currentStep > step.id }"
-                @click="store.goToStep(step.id)"
-            >
+                @click="store.goToStep(step.id)">
                 <v-icon v-if="store.currentStep > step.id" size="20">mdi-check</v-icon>
                 <span v-else>{{ step.id }}</span>
             </div>
@@ -22,8 +20,10 @@
 <script setup>
 import { computed, watch } from 'vue';
 import { useEventStore } from '@/store/eventStore';
+import { useRoute } from 'vue-router';
 
 const store = useEventStore();
+const route = useRoute();
 
 // 🔹 All possible steps
 const allSteps = [
@@ -40,11 +40,30 @@ const allSteps = [
 ];
 
 // 🔹 Dynamically filter based on basicInfo
+
 const steps = computed(() => {
-    const { basicInfo } = store?.formData;
+    const { basicInfo } = store.formData;
+    const eventId = route.query.id; // check if editing an existing event
+
+    // all possible steps
+    const allSteps = [
+        { id: 1, title: 'Event Type', key: 'eventType' },
+        { id: 2, title: 'Basic Info', key: 'basicInfo' },
+        { id: 3, title: 'Event Details', key: 'eventDetails' },
+        { id: 4, title: 'Speakers', key: 'speakers', condition: 'has_speaker' },
+        { id: 5, title: 'Sponsors', key: 'sponsors', condition: 'has_sponsor' },
+        { id: 6, title: 'Vendors', key: 'vendors', condition: 'has_vendor' },
+        { id: 7, title: 'Organizer Info', key: 'organizerInfo' },
+        { id: 8, title: 'Ticket Info', key: 'ticketInfo' },
+        { id: 9, title: 'Upload Image', key: 'uploadImage' },
+        { id: 10, title: 'Payment Summary', key: 'paymentSummary' }
+    ];
 
     return allSteps
         .filter((step) => {
+            // hide "Event Type" if editing
+            if (eventId && step.key === 'eventType') return false;
+
             if (step.condition === 'has_speaker') return basicInfo?.has_speaker;
             if (step.condition === 'has_sponsor') return basicInfo?.has_sponsor;
             if (step.condition === 'has_vendor') return basicInfo?.has_vendor;
@@ -52,9 +71,11 @@ const steps = computed(() => {
         })
         .map((step, index) => ({
             ...step,
-            id: index + 1 // Reassign IDs so step numbers stay sequential
+            id: index + 1 // sequential numbering
         }));
 });
+
+
 watch(steps, (newSteps) => {
     store.totalSteps = newSteps.length;
 
@@ -77,7 +98,8 @@ watch(steps, (newSteps) => {
 .step-wrapper {
     text-align: center;
     position: relative;
-    flex: 1; /* On desktop, each step takes equal space */
+    flex: 1;
+    /* On desktop, each step takes equal space */
 }
 
 .step-line {
@@ -137,16 +159,20 @@ watch(steps, (newSteps) => {
         overflow-x: auto;
         white-space: nowrap;
         -webkit-overflow-scrolling: touch;
-        scrollbar-width: none; /* Firefox */
+        scrollbar-width: none;
+        /* Firefox */
     }
 
     .stepper-container::-webkit-scrollbar {
-        display: none; /* Chrome, Safari */
+        display: none;
+        /* Chrome, Safari */
     }
 
     .step-wrapper {
-        flex: 0 0 auto; /* Don't shrink */
-        width: 120px; /* Each step fixed width for scrolling */
+        flex: 0 0 auto;
+        /* Don't shrink */
+        width: 120px;
+        /* Each step fixed width for scrolling */
     }
 
     .step-title {

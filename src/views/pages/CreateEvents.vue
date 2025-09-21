@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineAsyncComponent, onMounted, onUnmounted } from 'vue';
+import { computed, defineAsyncComponent, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import StepProgress from '@/components/event/StepProgress.vue';
 import { useEventStore } from '@/store/eventStore';
@@ -9,6 +9,7 @@ import api from '@/plugins/axios';
 const store = useEventStore();
 const snackbar = useSnackbarStore();
 const route = useRoute();
+const loading = ref(false);
 
 // Lazy load step components
 const stepComponents = {
@@ -27,7 +28,9 @@ const stepComponents = {
 // Filter steps based on conditions
 const steps = computed(() => {
     const { basicInfo } = store.formData;
-    return [
+    const eventId = route.query.id;
+
+    const allSteps = [
         { id: 1, title: 'Event Type', key: 'eventType' },
         { id: 2, title: 'Basic Info', key: 'basicInfo' },
         { id: 3, title: 'Event Details', key: 'eventDetails' },
@@ -38,8 +41,13 @@ const steps = computed(() => {
         { id: 8, title: 'Ticket Info', key: 'ticketInfo' },
         { id: 9, title: 'Upload Image', key: 'uploadImage' },
         { id: 10, title: 'Payment Summary', key: 'paymentSummary' }
-    ]
+    ];
+
+    return allSteps
         .filter((step) => {
+            // Hide "Event Type" only if editing
+            if (eventId && step.key === 'eventType') return false;
+
             if (step.condition === 'has_speaker') return basicInfo?.has_speaker;
             if (step.condition === 'has_sponsor') return basicInfo?.has_sponsor;
             if (step.condition === 'has_vendor') return basicInfo?.has_vendor;
@@ -47,9 +55,10 @@ const steps = computed(() => {
         })
         .map((step, index) => ({
             ...step,
-            id: index + 1
+            id: index + 1 // renumber steps
         }));
 });
+
 
 // Dynamically pick the active step component
 const currentComponent = computed(() => {
@@ -66,13 +75,11 @@ function submitEvent() {
 onMounted(async () => {
     const eventId = route.query.id;
     if (eventId) {
+        loading.value = true;
         try {
-            // 🔹 Fetch from your backend
             const res = await api.get(`/event-detail/${eventId}`);
-            //   if (!res.ok) throw new Error('Failed to load event');
-            const data = res.data.data
-            console.log(data)
-            // 🔹 Patch all steps data
+            const data = res.data.data;
+
             store.formData.eventType = data.event_type || {};
             store.formData.basicInfo = {
                 event_id: data.id,
@@ -84,11 +91,11 @@ onMounted(async () => {
                 has_sponsor: data.has_sponsor
             } || {};
             store.formData.eventDetails = {
-                event_id: data.details.event_id,
+                event_id: data?.details?.event_id || {},
                 start_datetime: data.details.start_datetime,
-                end_datetime:  data.details.end_datetime,
-                venue:  data.details.venue,
-                venue_address:  data.details.venue_address,
+                end_datetime: data.details.end_datetime,
+                venue: data.details.venue,
+                venue_address: data.details.venue_address,
             } || {};
             store.formData.speakers = data.speakers?.length ? data.speakers : store.formData.speakers;
             store.formData.sponsors = data.sponsors || [];
@@ -98,15 +105,23 @@ onMounted(async () => {
             store.formData.uploadImage = data.uploadImage || null;
             store.formData.finalData = data.finalData || {};
 
-            // 🔹 Jump to step 2
-            store.currentStep = 2;
+            store.currentStep = 1;
 
             snackbar.show?.('Event loaded successfully', 'success');
         } catch (err) {
             console.error(err);
             snackbar.show?.('Error loading event details', 'error');
+        } finally {
+            loading.value = false;
         }
     }
+});
+
+
+onUnmounted(() => {
+    store.formData = {};  // clear all form data
+    store.currentStep = 1; // reset to first step
+    snackbar.clear();
 });
 
 // Clear snackbar when leaving page
@@ -127,8 +142,12 @@ onUnmounted(() => {
 
                     <!-- Step Content -->
                     <div class="mt-6">
-                        <component :is="currentComponent" />
+                        <component v-if="!loading" :is="currentComponent" />
+                        <div v-else class="text-center py-6">
+                            <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
+                        </div>
                     </div>
+
 
                     <!-- Navigation Buttons -->
                     <!--
