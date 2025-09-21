@@ -85,16 +85,16 @@ const startDate = ref(store.formData.eventDetails?.start_datetime ? new Date(sto
 const endDate = ref(store.formData.eventDetails?.end_datetime ? new Date(store.formData.eventDetails.end_datetime) : null);
 
 // Extract time in "HH:MM" format if stored
-const startTime = ref(
-  store.formData.eventDetails?.start_datetime
-    ? store.formData.eventDetails.start_datetime.split(" ")[1].slice(0, 5)
-    : null
-);
-const endTime = ref(
-  store.formData.eventDetails?.end_datetime
-    ? store.formData.eventDetails.end_datetime.split(" ")[1].slice(0, 5)
-    : null
-);
+const getTime = (isoString) => {
+  if (!isoString) return null;
+  const date = new Date(isoString);
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
+const startTime = ref(getTime(store.formData.eventDetails?.start_datetime));
+const endTime = ref(getTime(store.formData.eventDetails?.end_datetime));
 
 const venue = ref(store.formData.eventDetails?.venue || "");
 const location = ref(store.formData.eventDetails?.venue_address || "");

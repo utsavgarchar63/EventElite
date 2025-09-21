@@ -1,14 +1,16 @@
 <script setup>
-// script setup
-import { computed, defineAsyncComponent, onUnmounted } from 'vue';
+import { computed, defineAsyncComponent, onMounted, onUnmounted } from 'vue';
+import { useRoute } from 'vue-router';
 import StepProgress from '@/components/event/StepProgress.vue';
 import { useEventStore } from '@/store/eventStore';
 import { useSnackbarStore } from '@/store/snackbar';
+import api from '@/plugins/axios';
 
 const store = useEventStore();
 const snackbar = useSnackbarStore();
+const route = useRoute();
 
-// Lazy load step components by key instead of ID
+// Lazy load step components
 const stepComponents = {
     eventType: defineAsyncComponent(() => import('@/components/event/steps/EventType.vue')),
     basicInfo: defineAsyncComponent(() => import('@/components/event/steps/BasicInfo.vue')),
@@ -22,7 +24,7 @@ const stepComponents = {
     paymentSummary: defineAsyncComponent(() => import('@/components/event/steps/PaymentSummary.vue'))
 };
 
-// Get the filtered steps from store
+// Filter steps based on conditions
 const steps = computed(() => {
     const { basicInfo } = store.formData;
     return [
@@ -49,16 +51,65 @@ const steps = computed(() => {
         }));
 });
 
-// Dynamically pick the active step’s component key
+// Dynamically pick the active step component
 const currentComponent = computed(() => {
     const currentStepObj = steps.value.find((s) => s.id === store.currentStep);
     return currentStepObj ? stepComponents[currentStepObj.key] : null;
 });
 
+// Handle submit
 function submitEvent() {
     console.log('Event Data:', store.formData);
 }
 
+// Load event data if id is present in URL
+onMounted(async () => {
+    const eventId = route.query.id;
+    if (eventId) {
+        try {
+            // 🔹 Fetch from your backend
+            const res = await api.get(`/event-detail/${eventId}`);
+            //   if (!res.ok) throw new Error('Failed to load event');
+            const data = res.data.data
+            console.log(data)
+            // 🔹 Patch all steps data
+            store.formData.eventType = data.event_type || {};
+            store.formData.basicInfo = {
+                event_id: data.id,
+                event_name: data.event_name,
+                event_type: data.event_type,
+                description: data.description,
+                has_speaker: data.has_speaker,
+                has_vendor: data.has_vendor,
+                has_sponsor: data.has_sponsor
+            } || {};
+            store.formData.eventDetails = {
+                event_id: data.details.event_id,
+                start_datetime: data.details.start_datetime,
+                end_datetime:  data.details.end_datetime,
+                venue:  data.details.venue,
+                venue_address:  data.details.venue_address,
+            } || {};
+            store.formData.speakers = data.speakers?.length ? data.speakers : store.formData.speakers;
+            store.formData.sponsors = data.sponsors || [];
+            store.formData.vendors = data.vendors || [];
+            store.formData.organizerInfo = data.organizerInfo || {};
+            store.formData.ticketInfo = data.ticketInfo || {};
+            store.formData.uploadImage = data.uploadImage || null;
+            store.formData.finalData = data.finalData || {};
+
+            // 🔹 Jump to step 2
+            store.currentStep = 2;
+
+            snackbar.show?.('Event loaded successfully', 'success');
+        } catch (err) {
+            console.error(err);
+            snackbar.show?.('Error loading event details', 'error');
+        }
+    }
+});
+
+// Clear snackbar when leaving page
 onUnmounted(() => {
     snackbar.clear();
 });
@@ -90,18 +141,15 @@ onUnmounted(() => {
                 </div>
             </v-col>
         </v-row>
-        <v-snackbar
-            v-model="useSnackbarStore().snackbar"
-            :color="useSnackbarStore().color"
-            timeout="4000"
-            location="top right"
-            transition="slide-x-reverse-transition"
-            class="custom-snackbar"
-        >
+
+        <v-snackbar v-model="useSnackbarStore().snackbar" :color="useSnackbarStore().color" timeout="4000"
+            location="top right" transition="slide-x-reverse-transition" class="custom-snackbar">
             <div class="snackbar-content">
-                <v-icon v-if="useSnackbarStore().color === 'success'" size="22" class="me-1" color="white"> mdi-check-circle </v-icon>
-                <v-icon v-else-if="useSnackbarStore().color === 'error'" size="22" class="me-1" color="white"> mdi-alert-circle </v-icon>
-                <v-icon v-else size="22" color="white" class="me-1"> mdi-information </v-icon>
+                <v-icon v-if="useSnackbarStore().color === 'success'" size="22" class="me-1"
+                    color="white">mdi-check-circle</v-icon>
+                <v-icon v-else-if="useSnackbarStore().color === 'error'" size="22" class="me-1"
+                    color="white">mdi-alert-circle</v-icon>
+                <v-icon v-else size="22" color="white" class="me-1">mdi-information</v-icon>
                 <span class="snackbar-text">{{ useSnackbarStore().message }}</span>
             </div>
         </v-snackbar>

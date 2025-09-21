@@ -74,7 +74,7 @@
 
             <!-- Event Table -->
             <v-data-table v-else :headers="headers" :items="filteredEvents" hide-default-footer class="custom-table"
-                density="comfortable">
+                @click:row="handleRowClick" density="comfortable">
                 <template #item.actions="{ item }">
                     <div class="action-wrapper">
                         <!-- Show Three Dot Button Only If Not Active -->
@@ -107,11 +107,15 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import api from '@/plugins/axios';
+import { useRouter } from 'vue-router';
 
 const props = defineProps({
     eventType: { type: String, required: true }, // upcoming, past, draft, cancelled
     showFilters: { type: Boolean, default: true }
 });
+
+
+const router = useRouter();
 
 let searchTimeout = null;
 const loading = ref(false);
@@ -193,6 +197,17 @@ const fetchEvents = async () => {
         loading.value = false;
     }
 };
+
+
+
+const handleRowClick = (_event, { item }) => {
+    if (props.eventType === 'draft') {
+        console.log(item)
+        router.push(`/admin/events/create/?id=${item.id}`);
+    }
+};
+
+
 
 // Debounce Search
 watch(search, () => {
@@ -346,5 +361,19 @@ watch(page, fetchEvents);
     /* Hide hint/details section under checkboxes */
     min-height: 0px;
     padding-top: 0px;
+}
+
+.custom-table tbody tr {
+    cursor: default;
+}
+
+.custom-table tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+[data-event-type="draft"] {
+    cursor: pointer;
+    background-color: #fffef0;
+    /* optional highlight for draft rows */
 }
 </style>
