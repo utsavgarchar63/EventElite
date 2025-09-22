@@ -96,10 +96,13 @@
 import api from '@/plugins/axios';
 import { router } from '@/router';
 import { useEventStore } from '@/store/eventStore';
+import { useSnackbarStore } from '@/store/snackbar';
 import { ref, onMounted } from 'vue';
 
 // 🔹 States
 const store = useEventStore();
+const snackbar = useSnackbarStore();
+
 
 const showNewCard = ref(false);
 const selectedCard = ref(null);
@@ -159,10 +162,52 @@ const fetchPaymentSummary = async () => {
 onMounted(fetchPaymentSummary);
 
 // 🔹 Submit Handler
+// const handleSubmit = async () => {
+//     // your payment logic
+//     router.push('/admin/event/success');
+//     console.log('Payment submitted:', selectedCard.value || newCard.value);
+// };
+
+// 🔹 Submit Handler
 const handleSubmit = async () => {
-    // your payment logic
-    router.push('/admin/event/success');
-    console.log('Payment submitted:', selectedCard.value || newCard.value);
+    try {
+        // pick either saved card or new card
+        const paymentMethod = showNewCard.value ? 'credit_card' : 'saved_card';
+
+        // Example: You’ll need to dynamically set these values
+        const payload = {
+            event_id: store.formData.basicInfo.id || store.formData.basicInfo.event_id,   // from store
+            amount: totalAmount.value,               // total amount
+            payment_method: paymentMethod,           // credit_card / saved_card / etc.
+            payment_status: 'completed',             // or 'pending'
+            transaction_id: `TXN${Date.now()}`       // generate or get from gateway
+        };
+
+        // Make API call
+        const response = await api.post(
+            '/events/payment',
+            payload,
+        );
+
+        if (response.data.status) {
+            console.log('Payment recorded:', response.data.data);
+
+            // Optionally show snackbar
+            snackbar.show('Payment successful!', "success");
+
+            // Navigate to success page
+            router.push('/admin/event/success');
+        } else {
+            console.error('Payment failed:', response.data.message);
+        }
+    } catch (error) {
+        console.error('Payment API error:', err);
+        if (error.response?.data?.message) {
+            snackbar.show(error.response.data.message, "error");
+        } else {
+            snackbar.show("Something went wrong. Please try again.", "error");
+        }
+    }
 };
 
 // 🔹 Cancel

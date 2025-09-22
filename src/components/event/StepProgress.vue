@@ -43,7 +43,6 @@ const allSteps = [
 
 const steps = computed(() => {
     const { basicInfo } = store.formData;
-    const eventId = route.query.id; // check if editing an existing event
 
     // all possible steps
     const allSteps = [
@@ -62,7 +61,6 @@ const steps = computed(() => {
     return allSteps
         .filter((step) => {
             // hide "Event Type" if editing
-            if (eventId && step.key === 'eventType') return false;
 
             if (step.condition === 'has_speaker') return basicInfo?.has_speaker;
             if (step.condition === 'has_sponsor') return basicInfo?.has_sponsor;

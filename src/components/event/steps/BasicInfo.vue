@@ -12,29 +12,17 @@
                     <!-- Event Name -->
                     <v-col cols="12" class="pa-0 pl-2 pl-lg-3 mb-3">
                         <v-label>Event Name</v-label>
-                        <v-text-field
-                            v-model="eventName"
-                            variant="outlined"
-                            placeholder="Enter event name"
-                            hide-details="auto"
-                            color="primary"
-                            :error="!!errors.eventName"
-                            :error-messages="errors.eventName"
-                        />
+                        <v-text-field v-model="eventName" variant="outlined" placeholder="Enter event name"
+                            hide-details="auto" color="primary" :error="!!errors.eventName"
+                            :error-messages="errors.eventName" />
                     </v-col>
 
                     <!-- Event Type -->
                     <v-col cols="12" class="pa-0 pl-2 pl-lg-3 mb-3">
                         <v-label>Event Type</v-label>
-                        <v-select
-                            v-model="eventType"
-                            :items="['', ...eventTypes]"
-                            variant="outlined"
-                            hide-details="auto"
-                            color="primary"
-                            :error="!!errors.eventType"
-                            :error-messages="errors.eventType"
-                        >
+                        <v-select v-model="eventType" :items="['', ...eventTypes]" variant="outlined"
+                            hide-details="auto" color="primary" :error="!!errors.eventType"
+                            :error-messages="errors.eventType">
                             <template v-slot:selection="{ item }">
                                 <span v-if="!item.value" style="color: #9e9e9e">Select event type</span>
                                 <span v-else>{{ item.title }}</span>
@@ -45,48 +33,26 @@
                     <!-- Event Description -->
                     <v-col cols="12" class="pa-0 pl-2 pl-lg-3 mb-3">
                         <v-label>Event Description</v-label>
-                        <v-textarea
-                            v-model="eventDescription"
-                            variant="outlined"
-                            placeholder="Enter event description here"
-                            hide-details="auto"
-                            color="primary"
-                        />
+                        <v-textarea v-model="eventDescription" variant="outlined"
+                            placeholder="Enter event description here" hide-details="auto" color="primary" />
                     </v-col>
 
                     <!-- Add-ons -->
                     <v-col cols="12" class="pa-0 pl-2 pl-lg-3">
                         <div class="d-flex flex-column">
-                            <v-checkbox
-                                v-model="addons.speakers"
-                                label="Add Speakers ($29.99)"
-                                color="primary"
-                                density="compact"
-                                class="ma-0"
-                                hide-details
-                            />
-                            <v-checkbox
-                                v-model="addons.sponsors"
-                                label="Add Sponsors ($29.99)"
-                                color="primary"
-                                density="compact"
-                                class="ma-0"
-                                hide-details
-                            />
-                            <v-checkbox
-                                v-model="addons.vendors"
-                                label="Add Vendors ($29.99)"
-                                color="primary"
-                                density="compact"
-                                class="ma-0"
-                                hide-details
-                            />
+                            <v-checkbox v-model="addons.speakers" label="Add Speakers ($29.99)" color="primary"
+                                density="compact" class="ma-0" hide-details />
+                            <v-checkbox v-model="addons.sponsors" label="Add Sponsors ($29.99)" color="primary"
+                                density="compact" class="ma-0" hide-details />
+                            <v-checkbox v-model="addons.vendors" label="Add Vendors ($29.99)" color="primary"
+                                density="compact" class="ma-0" hide-details />
                         </div>
                     </v-col>
 
                     <!-- Buttons -->
                     <v-col cols="12" class="pa-0 mt-4 pl-2 pl-lg-3 mb-3 d-flex justify-end">
-                        <v-btn color="primary" size="large" variant="outlined" class="mr-2" @click="handleGoBack"> Go Back </v-btn>
+                        <v-btn color="primary" size="large" variant="outlined" class="mr-2" @click="handleGoBack"> Go
+                            Back </v-btn>
                         <v-btn type="submit" color="primary" size="large"> Save & Next </v-btn>
                     </v-col>
                 </v-row>
@@ -114,8 +80,10 @@ import { ref } from 'vue';
 import { useEventStore } from '@/store/eventStore';
 import api from '@/plugins/axios';
 import { onMounted } from 'vue';
+import { useSnackbarStore } from '@/store/snackbar';
 
 const store = useEventStore();
+const snackbar = useSnackbarStore();
 
 const eventName = ref('');
 const eventType = ref('');
@@ -168,11 +136,13 @@ const validateForm = () => {
 
 const handleSubmit = async () => {
     if (!validateForm()) return;
-
+    const adminId = localStorage.getItem("admin_id")
     try {
+        console.log(localStorage.getItem("admin_id"))
         const response = await api.post('/events/basic-info', {
-            // event_id: store.formData.eventType.id,
-            event_id: 1,
+            event_id: store.formData.basicInfo.event_id,
+            subscription_plan_id: store.formData.eventType.id,
+            admin_id :adminId ,
             event_name: eventName.value,
             event_type: eventType.value,
             description: eventDescription.value,
@@ -190,8 +160,14 @@ const handleSubmit = async () => {
         } else {
             console.error('API Error:', response.data.message);
         }
-    } catch (error) {
-        console.error('Request failed:', error);
+    } catch (err) {
+        if (err.response?.data?.errors) {
+            const apiErrors = err.response.data.errors;
+            const messages = Object.values(apiErrors).flat().join('\n');
+            snackbar.show(messages, 'error');
+        } else {
+            snackbar.show('Something went wrong', 'error');
+        }
     }
 };
 

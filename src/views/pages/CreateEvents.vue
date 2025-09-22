@@ -28,7 +28,6 @@ const stepComponents = {
 // Filter steps based on conditions
 const steps = computed(() => {
     const { basicInfo } = store.formData;
-    const eventId = route.query.id;
 
     const allSteps = [
         { id: 1, title: 'Event Type', key: 'eventType' },
@@ -46,7 +45,6 @@ const steps = computed(() => {
     return allSteps
         .filter((step) => {
             // Hide "Event Type" only if editing
-            if (eventId && step.key === 'eventType') return false;
 
             if (step.condition === 'has_speaker') return basicInfo?.has_speaker;
             if (step.condition === 'has_sponsor') return basicInfo?.has_sponsor;
@@ -110,7 +108,6 @@ onMounted(async () => {
             snackbar.show?.('Event loaded successfully', 'success');
         } catch (err) {
             console.error(err);
-            snackbar.show?.('Error loading event details', 'error');
         } finally {
             loading.value = false;
         }
