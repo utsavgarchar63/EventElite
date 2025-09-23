@@ -47,8 +47,11 @@
 
                 <!-- Link column -->
                 <template #item.link="{ item }">
-                    <a :href="item.link" target="_blank">{{ item.link }}</a>
+                    <a :href="item.link" target="_blank" class="truncate-link" :title="item.link">
+                        {{ item.link }}
+                    </a>
                 </template>
+
 
                 <!-- Events count -->
                 <template #item.events_count="{ item }"> {{ item.events_count }} Events </template>
@@ -192,4 +195,13 @@ watch(search, () => {
     border-radius: 8px;
     margin-top: 10px;
 }
+.truncate-link {
+  display: inline-block;
+  max-width: 200px; /* adjust width as needed */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
 </style>

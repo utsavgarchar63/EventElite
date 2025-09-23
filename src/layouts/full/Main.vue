@@ -12,7 +12,7 @@ import NotificationDD from './vertical-header/NotificationDD.vue';
 import ProfileDD from './vertical-header/ProfileDD.vue';
 import NavCollapse from './vertical-sidebar/NavCollapse/NavCollapse.vue';
 import SettingDD from './vertical-header/SettingDD.vue';
-const sidebarMenu = useSidebarMenu();
+const { menus } = useSidebarMenu();
 const { mdAndDown } = useDisplay();
 const sDrawer = ref(true);
 onMounted(() => {
@@ -37,7 +37,7 @@ watch(mdAndDown, (val) => {
             <perfect-scrollbar class="scrollnavbar">
                 <v-list class="px-6 py-0">
                     <!---Menu Loop -->
-                    <template v-for="(item, i) in sidebarMenu">
+                    <template v-for="(item, i) in menus">
                         <!---Item Sub Header -->
                         <NavGroup :item="item" v-if="item.header" :key="item.title" />
 

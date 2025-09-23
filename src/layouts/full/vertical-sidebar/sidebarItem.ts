@@ -12,7 +12,7 @@ export interface Menu {
     header?: string;
     title?: string;
     icon?: any;
-    to?: string;
+    to?: string | string[];
     chip?: string;
     chipColor?: string;
     chipBgColor?: string;
@@ -63,34 +63,34 @@ const adminMenu: Menu[] = [
     {
         title: 'Attendee',
         icon: UserIcon,
-        to: '/admin/attendees',
+        to: ['/admin/attendees', '/admin/attendee'],
         external: false
     },
     {
         title: 'Speakers',
         icon: UserIcon,
-        to: '/admin/speakers',
+        to: ['/admin/speakers', '/admin/speaker'],
         external: false
     },
     {
         title: 'Sponsors',
         icon: UserIcon,
-        to: '/admin/sponsors',
+        to: ['/admin/sponsors', '/admin/sponsor'],
         external: false
     },
     {
         title: 'Vendors',
         icon: UserIcon,
-        to: '/admin/vendors',
+        to: ['/admin/vendors', '/admin/vendor'],
         external: false
     }
 ];
 
-// Dynamic Sidebar Menu based on URL
+
 export function useSidebarMenu() {
     const route = useRoute();
 
-    return computed<Menu[]>(() => {
+    const menus = computed<Menu[]>(() => {
         if (route.path.startsWith('/super-admin')) {
             return superAdminMenu;
         } else if (route.path.startsWith('/admin')) {
@@ -98,4 +98,13 @@ export function useSidebarMenu() {
         }
         return [];
     });
+
+    // helper to mark active item
+    function isActive(item: Menu) {
+        if (!item.to) return false;
+        const paths = Array.isArray(item.to) ? item.to : [item.to];
+        return paths.some((p) => route.path.startsWith(p));
+    }
+
+    return { menus, isActive };
 }
