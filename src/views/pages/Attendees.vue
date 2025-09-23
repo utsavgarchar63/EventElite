@@ -141,4 +141,11 @@ watch(search, () => {
     border-radius: 8px;
     margin-top: 10px;
 }
+
+::v-deep(.custom-table tbody tr:hover) {
+    background-color: #e3e3e368 !important;
+    /* light blue */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
 </style>

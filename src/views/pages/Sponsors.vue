@@ -204,4 +204,10 @@ watch(search, () => {
   vertical-align: middle;
 }
 
+::v-deep(.custom-table tbody tr:hover) {
+    background-color: #e3e3e368 !important;
+    /* light blue */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}   
 </style>

@@ -160,7 +160,7 @@ onMounted(() => {
 }
 
 .event-card:hover {
-    border: 1.5px solid rgb(var(--v-theme-primary)) !important;
+    border: 1.5px solid      !important;
 }
 
 /* Selected card always primary */

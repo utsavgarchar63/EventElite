@@ -46,9 +46,9 @@
                 </template>
 
                 <template #item.action="{ item }">
-                    <v-btn icon :href="item.business_link" target="_blank">
+                    <a style="color:rgb(33 33 33);" icon :href="item.business_link" target="_blank">
                         <v-icon>mdi-web</v-icon>
-                    </v-btn>
+                    </a>
                 </template>
             </v-data-table>
 
@@ -175,5 +175,13 @@ watch(search, () => {
     width: 100%;
     border-radius: 8px;
     margin-top: 10px;
+}
+
+/* Hover effect for table rows */
+::v-deep(.custom-table tbody tr:hover) {
+    background-color: #e3e3e368 !important;
+    /* light blue */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 </style>
