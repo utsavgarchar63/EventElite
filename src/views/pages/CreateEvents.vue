@@ -1,4 +1,5 @@
 <script setup>
+import CryptoJS from 'crypto-js';
 import { computed, defineAsyncComponent, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import StepProgress from '@/components/event/StepProgress.vue';
@@ -6,6 +7,7 @@ import { useEventStore } from '@/store/eventStore';
 import { useSnackbarStore } from '@/store/snackbar';
 import api from '@/plugins/axios';
 
+const SECRET_KEY = import.meta.env.VITE_SECRET_KEY;
 const store = useEventStore();
 const snackbar = useSnackbarStore();
 const route = useRoute();
@@ -71,7 +73,12 @@ function submitEvent() {
 
 // Load event data if id is present in URL
 onMounted(async () => {
-    const eventId = route.query.id;
+    // const eventId = route.query.id;
+    const encryptedId = route.query.id; // from URL
+    const decodedId = decodeURIComponent(encryptedId);
+    const bytes = CryptoJS.AES.decrypt(decodedId, SECRET_KEY);
+    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+    const eventId = JSON.parse(decrypted);
     if (eventId) {
         loading.value = true;
         try {

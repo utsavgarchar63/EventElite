@@ -1,12 +1,19 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import CryptoJS from 'crypto-js';
 import api from '@/plugins/axios'; // axios instance
 import MetricCard from '@/components/dashboard/MetricCard.vue';
 import ticketIcon from '@/assets/images/icons/ticket.svg';
 
+const SECRET_KEY = import.meta.env.VITE_SECRET_KEY;
 const route = useRoute();
-const attendeeId = route.params.id;
+
+const encryptedId = route.params.id;
+
+const decodedId = decodeURIComponent(encryptedId);
+const bytes = CryptoJS.AES.decrypt(decodedId, SECRET_KEY);
+const attendeeId = bytes.toString(CryptoJS.enc.Utf8);
 
 // states
 const loading = ref(false);
@@ -78,16 +85,19 @@ onMounted(fetchAttendeeDetails);
 
                 <!-- Metrics -->
                 <v-col cols="12" md="4">
-                    <MetricCard title="Events Attended" :value="attendee?.events_attended || 0" :icon="ticketIcon" avatarColor="primary" />
+                    <MetricCard title="Events Attended" :value="attendee?.events_attended || 0" :icon="ticketIcon"
+                        avatarColor="primary" />
                 </v-col>
                 <v-col cols="12" md="4">
-                    <MetricCard title="Total Spend" :value="attendee?.total_spend || 0" :icon="ticketIcon" avatarColor="success" />
+                    <MetricCard title="Total Spend" :value="attendee?.total_spend || 0" :icon="ticketIcon"
+                        avatarColor="success" />
                 </v-col>
             </v-row>
 
             <!-- Tabs: Events Attended -->
             <div class="mt-4" style="background-color: white; padding: 10px; border-radius: 10px">
-                <v-tabs v-model="activeTab" background-color="white" color="primary" slider-color="primary" class="main-tabs">
+                <v-tabs v-model="activeTab" background-color="white" color="primary" slider-color="primary"
+                    class="main-tabs">
                     <v-tab value="upcoming">Upcoming Events</v-tab>
                     <v-tab value="past">Past Events</v-tab>
                     <v-tab value="cancelled">Cancelled Events</v-tab>
@@ -97,17 +107,13 @@ onMounted(fetchAttendeeDetails);
                 <v-window v-model="activeTab">
                     <!-- Upcoming Events -->
                     <v-window-item value="upcoming">
-                        <v-data-table
-                            :headers="[
-                                { title: 'Event Name', key: 'event_name' },
-                                { title: 'Event Date', key: 'event_date' },
-                                { title: 'Tickets', key: 'total_tickets' },
-                                { title: 'Amount', key: 'amount' },
-                                { title: 'Status', key: 'status' }
-                            ]"
-                            :items="upcomingEvents"
-                            hide-default-footer
-                        >
+                        <v-data-table :headers="[
+                            { title: 'Event Name', key: 'event_name' },
+                            { title: 'Event Date', key: 'event_date' },
+                            { title: 'Tickets', key: 'total_tickets' },
+                            { title: 'Amount', key: 'amount' },
+                            { title: 'Status', key: 'status' }
+                        ]" :items="upcomingEvents" hide-default-footer>
                             <template #item.event_date="{ item }">
                                 {{ new Date(item.event_date).toLocaleDateString() }}
                             </template>
@@ -116,17 +122,13 @@ onMounted(fetchAttendeeDetails);
 
                     <!-- Past Events -->
                     <v-window-item value="past">
-                        <v-data-table
-                            :headers="[
-                                { title: 'Event Name', key: 'event_name' },
-                                { title: 'Event Date', key: 'event_date' },
-                                { title: 'Tickets', key: 'total_tickets' },
-                                { title: 'Amount', key: 'amount' },
-                                { title: 'Status', key: 'status' }
-                            ]"
-                            :items="pastEvents"
-                            hide-default-footer
-                        >
+                        <v-data-table :headers="[
+                            { title: 'Event Name', key: 'event_name' },
+                            { title: 'Event Date', key: 'event_date' },
+                            { title: 'Tickets', key: 'total_tickets' },
+                            { title: 'Amount', key: 'amount' },
+                            { title: 'Status', key: 'status' }
+                        ]" :items="pastEvents" hide-default-footer>
                             <template #item.event_date="{ item }">
                                 {{ new Date(item.event_date).toLocaleDateString() }}
                             </template>
@@ -135,17 +137,13 @@ onMounted(fetchAttendeeDetails);
 
                     <!-- Cancelled Events -->
                     <v-window-item value="cancelled">
-                        <v-data-table
-                            :headers="[
-                                { title: 'Event Name', key: 'event_name' },
-                                { title: 'Event Date', key: 'event_date' },
-                                { title: 'Tickets', key: 'total_tickets' },
-                                { title: 'Amount', key: 'amount' },
-                                { title: 'Status', key: 'status' }
-                            ]"
-                            :items="cancelledEvents"
-                            hide-default-footer
-                        >
+                        <v-data-table :headers="[
+                            { title: 'Event Name', key: 'event_name' },
+                            { title: 'Event Date', key: 'event_date' },
+                            { title: 'Tickets', key: 'total_tickets' },
+                            { title: 'Amount', key: 'amount' },
+                            { title: 'Status', key: 'status' }
+                        ]" :items="cancelledEvents" hide-default-footer>
                             <template #item.event_date="{ item }">
                                 {{ new Date(item.event_date).toLocaleDateString() }}
                             </template>
@@ -154,18 +152,14 @@ onMounted(fetchAttendeeDetails);
 
                     <!-- Transaction History -->
                     <v-window-item value="txn">
-                        <v-data-table
-                            :headers="[
-                                { title: 'Txn ID', key: 'txn_id' },
-                                { title: 'Event Name', key: 'event_name' },
-                                { title: 'Txn Date', key: 'txn_date' },
-                                { title: 'Method', key: 'method' },
-                                { title: 'Amount', key: 'amount' },
-                                { title: 'Status', key: 'status' }
-                            ]"
-                            :items="txnHistory"
-                            hide-default-footer
-                        >
+                        <v-data-table :headers="[
+                            { title: 'Txn ID', key: 'txn_id' },
+                            { title: 'Event Name', key: 'event_name' },
+                            { title: 'Txn Date', key: 'txn_date' },
+                            { title: 'Method', key: 'method' },
+                            { title: 'Amount', key: 'amount' },
+                            { title: 'Status', key: 'status' }
+                        ]" :items="txnHistory" hide-default-footer>
                             <template #item.txn_date="{ item }">
                                 {{ new Date(item.txn_date).toLocaleDateString() }}
                             </template>

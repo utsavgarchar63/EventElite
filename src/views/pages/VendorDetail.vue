@@ -1,13 +1,19 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import CryptoJS from "crypto-js";
 import api from '@/plugins/axios'; // axios instance
 import MetricCard from '@/components/dashboard/MetricCard.vue';
 import ticketIcon from '@/assets/images/icons/ticket.svg';
 
+const SECRET_KEY = import.meta.env.VITE_SECRET_KEY; 
 const route = useRoute();
-const vendorId = route.params.id;
+const encryptedId = route.params.id;
 
+// Decode & decrypt
+const decodedId = decodeURIComponent(encryptedId);
+const bytes = CryptoJS.AES.decrypt(decodedId, SECRET_KEY);
+const vendorId = bytes.toString(CryptoJS.enc.Utf8);
 // states
 const loading = ref(false);
 const vendor = ref(null);

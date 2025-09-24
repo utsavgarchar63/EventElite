@@ -73,10 +73,13 @@
 </template>
 
 <script setup>
+import CryptoJS from "crypto-js";
 import { ref, computed, onMounted, watch } from 'vue';
 import api from '@/plugins/axios';
 import { useSnackbarStore } from '@/store/snackbar';
 import { useRouter } from 'vue-router';
+
+const SECRET_KEY = import.meta.env.VITE_SECRET_KEY;
 
 const router = useRouter();
 
@@ -145,7 +148,10 @@ const fetchSponsors = async () => {
 };
 
 const goToSponsorDetail = (id) => {
-    router.push({ name: 'SponsorDetail', params: { id } });
+    const encryptedId = CryptoJS.AES.encrypt(id.toString(), SECRET_KEY).toString();
+    const encodedId = encodeURIComponent(encryptedId);
+
+    router.push({ name: 'SponsorDetail', params: { id: encodedId } });
 };
 
 const goToSponsorDetailFromRow = (event, item) => {

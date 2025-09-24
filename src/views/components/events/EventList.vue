@@ -105,9 +105,11 @@
 </template>
 
 <script setup>
+import CryptoJS from 'crypto-js';
 import { ref, computed, onMounted, watch } from 'vue';
 import api from '@/plugins/axios';
 import { useRouter } from 'vue-router';
+const SECRET_KEY = import.meta.env.VITE_SECRET_KEY;
 
 const props = defineProps({
     eventType: { type: String, required: true }, // upcoming, past, draft, cancelled
@@ -202,8 +204,9 @@ const fetchEvents = async () => {
 
 const handleRowClick = (_event, { item }) => {
     if (props.eventType === 'draft') {
-        console.log(item)
-        router.push(`/admin/events/create/?id=${item.id}`);
+        const encryptedId = CryptoJS.AES.encrypt(item.id.toString(), SECRET_KEY).toString();
+        const encoded = encodeURIComponent(encryptedId);
+        router.push(`/admin/events/create/?id=${encoded}`);
     }
 };
 

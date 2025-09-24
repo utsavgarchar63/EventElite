@@ -61,6 +61,7 @@
 </template>
 
 <script setup>
+import CryptoJS from "crypto-js";
 import { ref, computed, onMounted, watch } from 'vue';
 import api from '@/plugins/axios'; // your axios instance
 import { useRouter } from 'vue-router';
@@ -74,6 +75,7 @@ const pageCount = ref(0);
 
 const sortMenu = ref(false);
 const currentSort = ref('');
+const SECRET_KEY = import.meta.env.VITE_SECRET_KEY;
 
 const sortOptions = [
     { label: 'A-Z', value: 'az' },
@@ -124,8 +126,13 @@ const fetchVendors = async () => {
 };
 
 const goToVendorDetail = (event, item) => {
-    // item.item is the actual vendor data
-    router.push({ name: 'VendorDetail', params: { id: item.item.id } });
+    const id = item.item.id.toString();
+
+    // Encrypt and URL encode
+    const encryptedId = CryptoJS.AES.encrypt(id, SECRET_KEY).toString();
+    const encodedId = encodeURIComponent(encryptedId);
+
+    router.push({ name: 'VendorDetail', params: { id: encodedId } });
 };
 // Client-side search
 const filteredVendors = computed(() => {
@@ -143,11 +150,6 @@ const filteredVendors = computed(() => {
 const applySort = (value) => {
     currentSort.value = value;
     fetchVendors();
-};
-
-const viewVendor = (item) => {
-    // handle action click (go to website / open modal)
-    console.log('Vendor clicked:', item);
 };
 
 onMounted(fetchVendors);

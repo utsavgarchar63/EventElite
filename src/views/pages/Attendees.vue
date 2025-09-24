@@ -34,10 +34,12 @@
 </template>
 
 <script setup>
+import CryptoJS from 'crypto-js';
 import { ref, computed, onMounted, watch } from 'vue';
 import api from '@/plugins/axios';
 import { useSnackbarStore } from '@/store/snackbar';
 import { useRouter } from 'vue-router';
+const SECRET_KEY = import.meta.env.VITE_SECRET_KEY;
 
 const router = useRouter();
 const snackbar = useSnackbarStore();
@@ -109,11 +111,16 @@ const filteredAttendees = computed(() => {
 
 // Navigate to attendee detail page
 const goToAttendeeDetail = (id) => {
-    router.push({ name: 'AttendeeDetail', params: { id } });
+    // Encrypt the ID
+    const encryptedId = CryptoJS.AES.encrypt(id.toString(), SECRET_KEY).toString();
+    // Encode for safe URL usage
+    const encoded = encodeURIComponent(encryptedId);
+
+    router.push({ name: 'AttendeeDetail', params: { id: encoded } });
 };
 
 const goToAttendeeDetailFromRow = (event, item) => {
-    goToAttendeeDetail(item.item.id); // item.item = actual row data
+    goToAttendeeDetail(item.item.id);
 };
 
 onMounted(fetchAttendees);

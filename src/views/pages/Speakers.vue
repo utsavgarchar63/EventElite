@@ -56,6 +56,7 @@
 </template>
 
 <script setup>
+import CryptoJS from "crypto-js";
 import { ref, computed, onMounted, watch } from 'vue';
 import api from '@/plugins/axios'; // your axios instance
 import { useRouter } from 'vue-router';
@@ -125,14 +126,20 @@ const fetchSpeakers = async () => {
 };
 
 const goToSpeakerDetail = (id) => {
-    router.push({ name: 'SpeakerDetail', params: { id } });
+    // Encrypt the ID
+    const encryptedId = CryptoJS.AES.encrypt(id.toString(), import.meta.env.VITE_SECRET_KEY).toString();
+    // URL-safe version (Base64 has + and / which break URLs)
+    const encodedId = encodeURIComponent(encryptedId);
+
+    router.push({
+        name: 'SpeakerDetail',
+        params: { id: encodedId }
+    });
 };
 
 const goToSpeakerDetailFromRow = (event, item) => {
-    // item.item = actual data row
     goToSpeakerDetail(item.item.id);
 };
-
 
 // Client-side search
 const filteredSpeakers = computed(() => {
@@ -171,6 +178,7 @@ watch(search, () => {
     border-radius: 8px;
     margin-top: 10px;
 }
+
 ::v-deep(.custom-table tbody tr:hover) {
     background-color: #e3e3e368 !important;
     /* light blue */

@@ -1,12 +1,19 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import CryptoJS from "crypto-js";
 import api from '@/plugins/axios'; // axios instance
 import MetricCard from '@/components/dashboard/MetricCard.vue';
 import ticketIcon from '@/assets/images/icons/ticket.svg';
 
+const SECRET_KEY = import.meta.env.VITE_SECRET_KEY;
 const route = useRoute();
-const sponsorId = route.params.id; // changed to sponsorId
+
+const encryptedId = route.params.id;
+
+const decodedId = decodeURIComponent(encryptedId);
+const bytes = CryptoJS.AES.decrypt(decodedId, SECRET_KEY);
+const sponsorId = bytes.toString(CryptoJS.enc.Utf8);
 
 // states
 const loading = ref(false);
@@ -112,12 +119,8 @@ onMounted(fetchSponsorDetails);
                             </p>
                             <p v-if="sponsor.logo">
                                 Logo : <br />
-                                <img
-                                    v-if="sponsor.logo"
-                                    :src="`https://eventelite-eanm.onrender.com/${sponsor.logo}`"
-                                    alt="logo"
-                                    width="120"
-                                />
+                                <img v-if="sponsor.logo" :src="`https://eventelite-eanm.onrender.com/${sponsor.logo}`"
+                                    alt="logo" width="120" />
                             </p>
                         </div>
                     </v-card>
@@ -125,13 +128,8 @@ onMounted(fetchSponsorDetails);
 
                 <!-- Total Events Sponsored Metric -->
                 <v-col cols="12" md="4">
-                    <MetricCard
-                        v-if="sponsor"
-                        title="Total Events Sponsored"
-                        :value="sponsor.events_count"
-                        :icon="ticketIcon"
-                        avatarColor="primary"
-                    />
+                    <MetricCard v-if="sponsor" title="Total Events Sponsored" :value="sponsor.events_count"
+                        :icon="ticketIcon" avatarColor="primary" />
                 </v-col>
 
                 <v-col cols="12" md="4" class="d-flex justify-end mt-3">
@@ -143,7 +141,8 @@ onMounted(fetchSponsorDetails);
             <div style="margin-top: 20px; background-color: white; width: 100%; padding: 10px; border-radius: 10px">
                 <v-row class="align-center">
                     <v-col>
-                        <v-tabs v-model="activeTab" background-color="white" color="primary" slider-color="primary" class="main-tabs">
+                        <v-tabs v-model="activeTab" background-color="white" color="primary" slider-color="primary"
+                            class="main-tabs">
                             <v-tab value="upcoming" class="text-body-1">Upcoming Events</v-tab>
                             <v-tab value="past" class="text-body-1">Past Events</v-tab>
                             <v-tab value="cancelled" class="text-body-1">Cancelled Events</v-tab>
@@ -154,15 +153,11 @@ onMounted(fetchSponsorDetails);
                 <!-- Tabs Content -->
                 <v-window v-model="activeTab">
                     <v-window-item value="upcoming">
-                        <v-data-table
-                            :headers="[
-                                { title: 'Event Name', key: 'event_name' },
-                                { title: 'Event Date', key: 'start_datetime' },
-                                { title: 'Venue', key: 'venue' }
-                            ]"
-                            :items="upcomingEvents"
-                            hide-default-footer
-                        >
+                        <v-data-table :headers="[
+                            { title: 'Event Name', key: 'event_name' },
+                            { title: 'Event Date', key: 'start_datetime' },
+                            { title: 'Venue', key: 'venue' }
+                        ]" :items="upcomingEvents" hide-default-footer>
                             <template #item.start_datetime="{ item }">
                                 {{ new Date(item.start_datetime).toLocaleDateString() }}
                             </template>
@@ -170,15 +165,11 @@ onMounted(fetchSponsorDetails);
                     </v-window-item>
 
                     <v-window-item value="past">
-                        <v-data-table
-                            :headers="[
-                                { title: 'Event Name', key: 'event_name' },
-                                { title: 'Event Date', key: 'start_datetime' },
-                                { title: 'Venue', key: 'venue' }
-                            ]"
-                            :items="pastEvents"
-                            hide-default-footer
-                        >
+                        <v-data-table :headers="[
+                            { title: 'Event Name', key: 'event_name' },
+                            { title: 'Event Date', key: 'start_datetime' },
+                            { title: 'Venue', key: 'venue' }
+                        ]" :items="pastEvents" hide-default-footer>
                             <template #item.start_datetime="{ item }">
                                 {{ new Date(item.start_datetime).toLocaleDateString() }}
                             </template>
@@ -186,15 +177,11 @@ onMounted(fetchSponsorDetails);
                     </v-window-item>
 
                     <v-window-item value="cancelled">
-                        <v-data-table
-                            :headers="[
-                                { title: 'Event Name', key: 'event_name' },
-                                { title: 'Event Date', key: 'start_datetime' },
-                                { title: 'Venue', key: 'venue' }
-                            ]"
-                            :items="cancelledEvents"
-                            hide-default-footer
-                        >
+                        <v-data-table :headers="[
+                            { title: 'Event Name', key: 'event_name' },
+                            { title: 'Event Date', key: 'start_datetime' },
+                            { title: 'Venue', key: 'venue' }
+                        ]" :items="cancelledEvents" hide-default-footer>
                             <template #item.start_datetime="{ item }">
                                 {{ new Date(item.start_datetime).toLocaleDateString() }}
                             </template>
