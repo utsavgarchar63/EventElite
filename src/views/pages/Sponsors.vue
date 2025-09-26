@@ -40,19 +40,13 @@
         <v-data-table :headers="headers" :items="filteredSponsors" hide-default-footer class="custom-table"
           density="comfortable" @click:row="goToSponsorDetailFromRow">
           <!-- Business Name with Logo -->
-          <!-- <template #item.business_name="{ item }">
-            <div class="d-flex align-center gap-2 flex-wrap">
-              <v-avatar v-if="item.logo" size="32">
-                <img :src="item.logo" alt="" />
-              </v-avatar>
-              <strong class="truncate">{{ item.business_name }}</strong>
-            </div>
-          </template> -->
           <template #item.business_name="{ item }">
             <div class="d-flex align-center gap-3">
-              <v-avatar size="36">
-                <img :src="item.logo || placeholder" alt="Business Logo" />
+              <!-- Show avatar only if logo exists or fallback -->
+              <v-avatar v-if="item.logo || placeholder" size="36">
+                <img :src="item.logo || placeholder" @error="onImageError($event)" alt="Business Logo" />
               </v-avatar>
+
               <strong>{{ item.business_name }}</strong>
             </div>
           </template>
@@ -92,7 +86,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import api from '@/plugins/axios';
 import { useSnackbarStore } from '@/store/snackbar';
 import { useRouter } from 'vue-router';
-
+import placeholder from "@/assets/images/logos/placeholder.png"
 const SECRET_KEY = import.meta.env.VITE_SECRET_KEY;
 
 const router = useRouter();
@@ -113,6 +107,7 @@ const sortOptions = [
   { label: 'Z-A', value: 'za' }
 ];
 
+
 const headers = [
   { title: 'Business Name', key: 'business_name' },
   { title: 'Link', key: 'link' },
@@ -120,6 +115,10 @@ const headers = [
   { title: 'Action', key: 'action', sortable: false }
 ];
 
+
+const onImageError = (event) => {
+  event.target.src = placeholder;
+};
 const fetchSponsors = async () => {
   loading.value = true;
   try {

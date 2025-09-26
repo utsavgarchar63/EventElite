@@ -48,12 +48,16 @@
                     </template> -->
                     <template #item.business_name="{ item }">
                         <div class="d-flex align-center gap-3">
-                            <v-avatar size="36">
-                                <img :src="item.logo || placeholder" alt="Business Logo" />
+                            <!-- Avatar: show logo if exists, fallback to placeholder if broken -->
+                            <v-avatar v-if="item.logo || placeholder" size="36">
+                                <img :src="item.logo || placeholder" @error="onImageError($event)"
+                                    alt="Business Logo" />
                             </v-avatar>
+
                             <strong>{{ item.business_name }}</strong>
                         </div>
                     </template>
+
 
 
                     <template #item.action="{ item }">
@@ -92,6 +96,9 @@ const sortMenu = ref(false);
 const currentSort = ref('');
 const SECRET_KEY = import.meta.env.VITE_SECRET_KEY;
 
+const onImageError = (event) => {
+    event.target.src = placeholder;
+};
 const sortOptions = [
     { label: 'A-Z', value: 'az' },
     { label: 'Z-A', value: 'za' }

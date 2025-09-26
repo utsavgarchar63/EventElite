@@ -40,8 +40,7 @@
                     density="comfortable" @click:row="goToSpeakerDetailFromRow">
                     <template #item.full_name="{ item }">
                         <div class="d-flex align-center gap-3" style="cursor: pointer">
-                       
-                            <strong>{{ item.full_name }}</strong>
+                        <strong>{{ item.full_name }}</strong>
                         </div>
                     </template>
 
