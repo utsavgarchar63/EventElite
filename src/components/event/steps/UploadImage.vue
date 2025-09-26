@@ -4,19 +4,14 @@
             <!-- Heading -->
             <div class="mb-8">
                 <h4 class="text-h2 font-weight-bold">Media & Marketing</h4>
-                <p class="mt-1" style="color: #525454">Please upload an image, video, or provide links for the event.</p>
+                <p class="mt-1" style="color: #525454">Please upload an image, video, or provide links for the event.
+                </p>
             </div>
 
             <v-form @submit.prevent="handleSubmit">
                 <!-- Event Logo -->
-                <div
-                    class="upload-box"
-                    :class="{ active: dragActiveLogo }"
-                    @dragover.prevent="dragActiveLogo = true"
-                    @dragleave.prevent="dragActiveLogo = false"
-                    @drop="onDropLogo"
-                    @click="triggerLogoBrowse"
-                >
+                <div class="upload-box" :class="{ active: dragActiveLogo }" @dragover.prevent="dragActiveLogo = true"
+                    @dragleave.prevent="dragActiveLogo = false" @drop="onDropLogo" @click="triggerLogoBrowse">
                     <input type="file" accept="image/*" ref="logoInput" class="hidden-input" @change="onLogoBrowse" />
                     <div v-if="!previewLogo" class="upload-content">
                         <v-icon size="36" color="primary">mdi-image</v-icon>
@@ -30,14 +25,9 @@
                 <div v-if="logoError" class="error-text">{{ logoError }}</div>
 
                 <!-- Event Image -->
-                <div
-                    class="upload-box mt-4"
-                    :class="{ active: dragActiveImage }"
-                    @dragover.prevent="dragActiveImage = true"
-                    @dragleave.prevent="dragActiveImage = false"
-                    @drop="onDropImage"
-                    @click="triggerImageBrowse"
-                >
+                <div class="upload-box mt-4" :class="{ active: dragActiveImage }"
+                    @dragover.prevent="dragActiveImage = true" @dragleave.prevent="dragActiveImage = false"
+                    @drop="onDropImage" @click="triggerImageBrowse">
                     <input type="file" accept="image/*" ref="imageInput" class="hidden-input" @change="onImageBrowse" />
                     <div v-if="!previewImage" class="upload-content">
                         <v-icon size="36" color="primary">mdi-image</v-icon>
@@ -51,14 +41,9 @@
                 <div v-if="imageError" class="error-text">{{ imageError }}</div>
 
                 <!-- Event Video -->
-                <div
-                    class="upload-box mt-4"
-                    :class="{ active: dragActiveVideo }"
-                    @dragover.prevent="dragActiveVideo = true"
-                    @dragleave.prevent="dragActiveVideo = false"
-                    @drop="onDropVideo"
-                    @click="triggerVideoBrowse"
-                >
+                <div class="upload-box mt-4" :class="{ active: dragActiveVideo }"
+                    @dragover.prevent="dragActiveVideo = true" @dragleave.prevent="dragActiveVideo = false"
+                    @drop="onDropVideo" @click="triggerVideoBrowse">
                     <input type="file" accept="video/*" ref="videoInput" class="hidden-input" @change="onVideoBrowse" />
                     <div v-if="!previewVideo" class="upload-content">
                         <v-icon size="36" color="primary">mdi-video</v-icon>
@@ -72,15 +57,20 @@
                 <div v-if="videoError" class="error-text">{{ videoError }}</div>
 
                 <!-- Social Media Links -->
-                <v-text-field v-model="facebookLink" variant="outlined" placeholder="Facebook link" class="mt-4"></v-text-field>
-                <v-text-field v-model="instagramLink" variant="outlined" placeholder="Instagram link" class="mt-2"></v-text-field>
-                <v-text-field v-model="twitterLink" variant="outlined" placeholder="Twitter link" class="mt-2"></v-text-field>
-                <v-text-field v-model="linkedinLink" variant="outlined" placeholder="LinkedIn link" class="mt-2"></v-text-field>
+                <v-text-field v-model="facebookLink" variant="outlined" placeholder="Facebook link"
+                    class="mt-4"></v-text-field>
+                <v-text-field v-model="instagramLink" variant="outlined" placeholder="Instagram link"
+                    class="mt-2"></v-text-field>
+                <v-text-field v-model="twitterLink" variant="outlined" placeholder="Twitter link"
+                    class="mt-2"></v-text-field>
+                <v-text-field v-model="linkedinLink" variant="outlined" placeholder="LinkedIn link"
+                    class="mt-2"></v-text-field>
 
                 <!-- Buttons -->
                 <v-row class="mt-4">
                     <v-col cols="12" class="d-flex justify-end">
-                        <v-btn color="primary" size="large" variant="outlined" class="mr-2" @click="handleCancel"> Go Back </v-btn>
+                        <v-btn color="primary" size="large" variant="outlined" class="mr-2" @click="handleCancel"> Go
+                            Back </v-btn>
                         <v-btn type="submit" color="primary" size="large">Save and Exit</v-btn>
                     </v-col>
                 </v-row>
@@ -183,7 +173,7 @@ const handleSubmit = async () => {
     try {
         const formData = new FormData();
         // formData.append('event_id', store.formData.eventType.id);
-        formData.append('event_id', 1);
+        formData.append('event_id', store.formData.basicInfo?.id);
         formData.append('facebook_link', facebookLink.value);
         formData.append('instagram_link', instagramLink.value);
         formData.append('twitter_link', twitterLink.value);
@@ -226,6 +216,7 @@ const handleCancel = () => {
     width: 100%;
     max-width: 700px;
 }
+
 .upload-box {
     border: 2px dashed #cfd8dc;
     border-radius: 8px;
@@ -236,13 +227,16 @@ const handleCancel = () => {
     background: #fafafa;
     transition: all 0.2s ease;
 }
+
 .upload-box.active {
     border-color: #2a85ff;
     background: #e3f2fd;
 }
+
 .hidden-input {
     display: none;
 }
+
 .upload-content {
     display: flex;
     flex-direction: column;
@@ -250,27 +244,32 @@ const handleCancel = () => {
     gap: 6px;
     color: #555;
 }
+
 .browse-text {
     color: #2a85ff;
     font-weight: 500;
 }
+
 .preview {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
 }
+
 .preview img,
 .preview video {
     max-width: 120px;
     border-radius: 8px;
 }
+
 .error-text {
     color: red;
     font-size: 13px;
     text-align: center;
     margin-top: 4px;
 }
+
 @media (max-width: 600px) {
     .form-wrapper {
         max-width: 100% !important;

@@ -1,11 +1,12 @@
 <template>
     <v-container>
-        <div style="background: white; border-radius: 8px">
-            <!-- Header -->
-            <div class="header-section d-flex justify-space-between align-center pa-4">
-                <h5 class="title h3">All Speakers ({{ totalSpeakers }})</h5>
+        <div class="table-wrapper" style="background: white; border-radius: 8px; padding: 16px">
 
-                <div class="d-flex gap-3">
+            <!-- Header -->
+            <div class="header-section d-flex justify-space-between align-center flex-wrap mb-4">
+                <h5 class="title h3 mb-2 mb-md-0">All Speakers ({{ totalSpeakers }})</h5>
+
+                <div class="d-flex gap-3 flex-wrap">
                     <!-- Search -->
                     <v-text-field v-model="search" placeholder="Search Speakers" density="compact" variant="outlined"
                         hide-details clearable append-inner-icon="mdi-magnify" class="search-bar" />
@@ -28,27 +29,29 @@
             </div>
 
             <!-- Loader -->
-            <div v-if="loading" class="d-flex justify-center" style="height: 200px">
-                <v-progress-circular indeterminate color="primary" size="48" class="my-auto" />
+            <!-- Loader -->
+
+            <div v-if="loading" class="loader-wrapper">
+                <v-progress-circular indeterminate color="primary" size="48" />
+            </div>
+            <!-- Speakers Table -->
+            <div v-else class="overflow-x-auto">
+                <v-data-table :headers="headers" :items="filteredSpeakers" hide-default-footer class="custom-table"
+                    density="comfortable" @click:row="goToSpeakerDetailFromRow">
+                    <template #item.full_name="{ item }">
+                        <div class="d-flex align-center gap-3" style="cursor: pointer">
+                       
+                            <strong>{{ item.full_name }}</strong>
+                        </div>
+                    </template>
+
+                    <template #item.events="{ item }">{{ item.events }} Events</template>
+                </v-data-table>
             </div>
 
-            <!-- Speakers Table -->
-            <v-data-table v-else :headers="headers" :items="filteredSpeakers" hide-default-footer class="custom-table"
-                density="comfortable" @click:row="goToSpeakerDetailFromRow">
-                <template #item.full_name="{ item }">
-                    <div class="d-flex align-center gap-3" style="cursor: pointer">
-                        <v-avatar size="36">
-                            <v-icon>mdi-account</v-icon>
-                        </v-avatar>
-                        <strong>{{ item.full_name }}</strong>
-                    </div>
-                </template>
-
-                <template #item.events="{ item }"> {{ item.events }} Events </template>
-            </v-data-table>
 
             <!-- Pagination -->
-            <div class="d-flex justify-center mt-4">
+            <div class="d-flex justify-center mt-4" v-if="pageCount > 1">
                 <v-pagination v-model="page" :length="pageCount" total-visible="5" @update:modelValue="fetchSpeakers" />
             </div>
         </div>
@@ -58,7 +61,7 @@
 <script setup>
 import CryptoJS from "crypto-js";
 import { ref, computed, onMounted, watch } from 'vue';
-import api from '@/plugins/axios'; // your axios instance
+import api from '@/plugins/axios';
 import { useRouter } from 'vue-router';
 
 const loading = ref(false);
@@ -67,7 +70,6 @@ const speakers = ref([]);
 const totalSpeakers = ref(0);
 const page = ref(1);
 const pageCount = ref(0);
-
 const sortMenu = ref(false);
 const currentSort = ref('');
 const router = useRouter();
@@ -90,8 +92,9 @@ const headers = [
 const fetchSpeakers = async () => {
     loading.value = true;
     try {
-        const userString = localStorage.getItem('user'); // get the string
+        const userString = localStorage.getItem('user');
         const user = userString ? JSON.parse(userString) : null;
+
         const response = await api.get(`/speakers/list/${user.organization_id}`, {
             params: {
                 page: page.value,
@@ -102,16 +105,13 @@ const fetchSpeakers = async () => {
 
         if (response.data.success) {
             const result = response.data.data;
-
-            // Map API data to your table fields
-            speakers.value = result.data.map((sp) => ({
+            speakers.value = result.data.map(sp => ({
                 id: sp.id,
                 full_name: sp.name,
                 email: sp.email,
                 phone: sp.phone,
                 events: sp.events_count
             }));
-
             totalSpeakers.value = result.total;
             pageCount.value = result.last_page;
         } else {
@@ -126,28 +126,24 @@ const fetchSpeakers = async () => {
 };
 
 const goToSpeakerDetail = (id) => {
-    // Encrypt the ID
     const encryptedId = CryptoJS.AES.encrypt(id.toString(), import.meta.env.VITE_SECRET_KEY).toString();
-    // URL-safe version (Base64 has + and / which break URLs)
     const encodedId = encodeURIComponent(encryptedId);
-
-    router.push({
-        name: 'SpeakerDetail',
-        params: { id: encodedId }
-    });
+    router.push({ name: 'SpeakerDetail', params: { id: encodedId } });
 };
 
 const goToSpeakerDetailFromRow = (event, item) => {
     goToSpeakerDetail(item.item.id);
 };
 
-// Client-side search
 const filteredSpeakers = computed(() => {
     if (!search.value) return speakers.value;
     const q = search.value.toLowerCase();
-    return speakers.value.filter((s) => s.full_name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q) || s.phone.includes(q));
+    return speakers.value.filter(s =>
+        s.full_name.toLowerCase().includes(q) ||
+        s.email.toLowerCase().includes(q) ||
+        s.phone.includes(q)
+    );
 });
-
 const applySort = (value) => {
     currentSort.value = value;
     fetchSpeakers();
@@ -155,10 +151,7 @@ const applySort = (value) => {
 
 onMounted(fetchSpeakers);
 watch(page, fetchSpeakers);
-watch(search, () => {
-    page.value = 1;
-    fetchSpeakers();
-});
+watch(search, () => { page.value = 1; fetchSpeakers(); });
 </script>
 
 <style scoped>
@@ -172,6 +165,16 @@ watch(search, () => {
     width: 250px;
 }
 
+
+.loader-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    width: 100%;
+}
+
+
 .custom-table {
     background: white;
     width: 100%;
@@ -181,8 +184,11 @@ watch(search, () => {
 
 ::v-deep(.custom-table tbody tr:hover) {
     background-color: #e3e3e368 !important;
-    /* light blue */
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+.table-wrapper {
+    overflow-x: auto;
 }
 </style>

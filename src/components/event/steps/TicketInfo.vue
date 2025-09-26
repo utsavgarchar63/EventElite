@@ -33,12 +33,12 @@
                         <v-text-field v-model="ticket.description" placeholder="Enter ticket description"
                             variant="outlined" />
                     </v-col>
-
                     <v-col cols="12" md="6" class="pa-0 pe-lg-2">
                         <v-label>Price ($)</v-label>
                         <v-text-field v-model="ticket.price" placeholder="Enter ticket price" variant="outlined"
-                            @input="ticket.price = ticket.price.replace(/[^0-9.]/g, '')" />
+                            @input="ticket.price = ticket.price.replace(/[^0-9.]/g, '')" :disabled="ticket.isFree" />
                     </v-col>
+
 
                     <v-col cols="12" md="6" class="pa-0 ps-lg-2">
                         <v-label>Capacity</v-label>
@@ -129,13 +129,13 @@ const removeTicket = (index) => {
 };
 
 watch(ticketType, (newVal) => {
-    // If Free Ticket selected → mark all as free & clear price
     tickets.value = tickets.value.map((t) => ({
         ...t,
         isFree: newVal === 'Free Ticket',
-        price: newVal === 'Free Ticket' ? '' : t.price
+        price: newVal === 'Free Ticket' ? '0' : t.price // 👈 price = 0 if free ticket
     }));
 });
+
 
 
 // Submit tickets
@@ -143,7 +143,7 @@ const handleSubmit = async () => {
     try {
         // Build payload as requested
         const payload = {
-            event_id: 1,
+            event_id: store.formData.basicInfo?.id,
             tickets: tickets.value.map((t) => ({
                 is_free: t.isFree, // ✅ each ticket decides free/paid
                 ticket_name: t.name,

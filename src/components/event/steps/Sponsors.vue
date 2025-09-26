@@ -228,7 +228,7 @@ const removeSponsor = (index) => sponsors.value.splice(index, 1);
 const handleSubmit = async () => {
   try {
     const formData = new FormData();
-    formData.append('event_id', store.formData.eventType.id);
+    formData.append('event_id', store.formData.basicInfo.id);
     sponsors.value.forEach((s, i) => {
       formData.append(`sponsors[${i}][id]`, s.selectedId || '');
       formData.append(`sponsors[${i}][tier]`, s.tier || '');

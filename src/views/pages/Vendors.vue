@@ -2,60 +2,73 @@
     <v-container>
         <div style="background: white; border-radius: 8px">
             <!-- Header -->
-            <div class="header-section d-flex justify-space-between align-center pa-4">
-                <h5 class="title h3">All Vendors ({{ totalVendors }})</h5>
+            <div class="header-section pa-4">
+                <v-row class="d-flex align-center" dense>
+                    <v-col cols="12" sm="6" class="d-flex align-center">
+                        <h5 class="title h3 mb-2 mb-sm-0">All Vendors ({{ totalVendors }})</h5>
+                    </v-col>
 
-                <div class="d-flex gap-3">
-                    <!-- Search -->
-                    <v-text-field v-model="search" placeholder="Search Vendors" density="compact" variant="outlined"
-                        hide-details clearable append-inner-icon="mdi-magnify" class="search-bar" />
-
-                    <!-- Sort Menu -->
-                    <v-menu v-model="sortMenu" offset-y>
-                        <template #activator="{ props }">
-                            <v-btn v-bind="props" variant="outlined" class="d-flex align-center gap-2">
-                                <v-icon>mdi-sort</v-icon> Sort
-                            </v-btn>
-                        </template>
-                        <v-list>
-                            <v-list-item v-for="option in sortOptions" :key="option.value"
-                                @click="applySort(option.value)">
-                                <v-list-item-title>{{ option.label }}</v-list-item-title>
-                            </v-list-item>
-                        </v-list>
-                    </v-menu>
-                </div>
+                    <v-col cols="12" sm="6" class="d-flex justify-end flex-wrap gap-2">
+                        <v-text-field v-model="search" placeholder="Search Vendors" density="compact" variant="outlined"
+                            hide-details clearable append-inner-icon="mdi-magnify" class="search-bar" />
+                        <v-menu v-model="sortMenu" offset-y>
+                            <template #activator="{ props }">
+                                <v-btn v-bind="props" variant="outlined" class="d-flex align-center gap-2">
+                                    <v-icon>mdi-sort</v-icon> Sort
+                                </v-btn>
+                            </template>
+                            <v-list>
+                                <v-list-item v-for="option in sortOptions" :key="option.value"
+                                    @click="applySort(option.value)">
+                                    <v-list-item-title>{{ option.label }}</v-list-item-title>
+                                </v-list-item>
+                            </v-list>
+                        </v-menu>
+                    </v-col>
+                </v-row>
             </div>
 
             <!-- Loader -->
-            <div v-if="loading" class="d-flex justify-center" style="height: 200px">
-                <v-progress-circular indeterminate color="primary" size="48" class="my-auto" />
+            <div v-if="loading" class="loader-wrapper">
+                <v-progress-circular indeterminate color="primary" size="48" />
             </div>
 
             <!-- Vendors Table -->
-            <v-data-table v-else :headers="headers" :items="filteredVendors" hide-default-footer class="custom-table"
-                density="comfortable" @click:row="goToVendorDetail">
-                <!-- Business Name with avatar -->
-                <template #item.business_name="{ item }">
-                    <div class="d-flex align-center gap-3">
-                        <v-avatar size="36">
-                            <img :src="item.logo ? baseURL + item.logo : '/placeholder.png'" alt="" />
-                        </v-avatar>
-                        <strong>{{ item.business_name }}</strong>
-                    </div>
-                </template>
+            <!-- Vendors Table -->
+            <div v-else class="table-wrapper">
+                <v-data-table :headers="headers" :items="filteredVendors" hide-default-footer class="custom-table"
+                    density="comfortable" @click:row="goToVendorDetail">
+                    <!-- <template #item.business_name="{ item }">
+                        <div class="d-flex align-center gap-2 flex-wrap">
+                            <v-avatar v-if="item.logo" size="32">
+                                <img :src="item.logo" alt="" />
+                            </v-avatar>
+                            <strong class="truncate">{{ item.business_name }}</strong>
+                        </div>
+                    </template> -->
+                    <template #item.business_name="{ item }">
+                        <div class="d-flex align-center gap-3">
+                            <v-avatar size="36">
+                                <img :src="item.logo || placeholder" alt="Business Logo" />
+                            </v-avatar>
+                            <strong>{{ item.business_name }}</strong>
+                        </div>
+                    </template>
 
-                <template #item.action="{ item }">
-                    <a style="color:rgb(33 33 33);" icon :href="item.business_link" target="_blank">
-                        <v-icon>mdi-web</v-icon>
-                    </a>
-                </template>
-            </v-data-table>
+
+                    <template #item.action="{ item }">
+                        <a style="color:rgb(33 33 33);" :href="item.business_link" target="_blank">
+                            <v-icon>mdi-web</v-icon>
+                        </a>
+                    </template>
+                </v-data-table>
+            </div>
 
             <!-- Pagination -->
-            <div class="d-flex justify-center mt-4">
+            <div class="d-flex justify-center mt-4 flex-wrap">
                 <v-pagination v-model="page" :length="pageCount" total-visible="5" @update:modelValue="fetchVendors" />
             </div>
+
         </div>
     </v-container>
 </template>
@@ -65,6 +78,8 @@ import CryptoJS from "crypto-js";
 import { ref, computed, onMounted, watch } from 'vue';
 import api from '@/plugins/axios'; // your axios instance
 import { useRouter } from 'vue-router';
+import placeholder from '@/assets/images/logos/placeholder.png';
+
 const router = useRouter();
 const loading = ref(false);
 const search = ref('');
@@ -84,7 +99,6 @@ const sortOptions = [
 
 const headers = [
     { title: 'Business Name', key: 'business_name' },
-    { title: 'Location', key: 'location' },
     { title: 'Contact Name', key: 'contact_name' },
     { title: 'Email', key: 'email' },
     { title: 'Phone', key: 'phone' },
@@ -111,6 +125,7 @@ const fetchVendors = async () => {
         // Adjusted to your API response
         if (response.data.success) {
             const result = response.data.data; // main data object
+            console.log(result.data)
             vendors.value = result.data; // array of vendors
             totalVendors.value = result.total; // total count
             pageCount.value = result.last_page; // total pages
@@ -185,5 +200,46 @@ watch(search, () => {
     /* light blue */
     cursor: pointer;
     transition: background-color 0.3s ease;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 8px;
+    /* add a little space for scrollbar */
+}
+
+.custom-table {
+    min-width: 650px;
+    /* forces horizontal scroll when too narrow */
+}
+
+.truncate {
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-bar {
+    width: 100%;
+    max-width: 250px;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+    .search-bar {
+        max-width: 100%;
+    }
+}
+
+.loader-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    /* taller so it feels balanced */
+    width: 100%;
 }
 </style>

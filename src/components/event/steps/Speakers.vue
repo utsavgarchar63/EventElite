@@ -226,7 +226,7 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   try {
     const payload = {
-      event_id: store.formData.eventType.id,
+      event_id: store.formData.basicInfo.id,
       speakers: speakers.value.map(s => ({
         id: s.selectedId || s.id || null,
         name: s.name,

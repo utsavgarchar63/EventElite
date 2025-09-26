@@ -9,17 +9,8 @@
       <v-form @submit.prevent="handleSubmit" class="ms-lg-3">
         <!-- Multi-select of existing vendors -->
         <v-col cols="12" class="pa-2 mb-6">
-          <v-select
-            v-model="selectedVendors"
-            :items="allVendors"
-            item-title="business_name"
-            item-value="id"
-            multiple
-            chips
-            label="Select Existing Vendors"
-            variant="outlined"
-            @update:modelValue="handleSelectedVendors"
-          />
+          <v-select v-model="selectedVendors" :items="allVendors" item-title="business_name" item-value="id" multiple
+            chips label="Select Existing Vendors" variant="outlined" @update:modelValue="handleSelectedVendors" />
         </v-col>
 
         <!-- Vendors Loop -->
@@ -36,77 +27,49 @@
           <!-- Business Name -->
           <v-col cols="12" md="6" class="pe-lg-2 pa-0">
             <v-label>Business Name</v-label>
-            <v-text-field
-              v-model="vendor.businessName"
-              variant="outlined"
-              placeholder="Google"
-              :disabled="vendor.isSelected"
-            />
+            <v-text-field v-model="vendor.businessName" variant="outlined" placeholder="Google"
+              :disabled="vendor.isSelected" />
           </v-col>
 
           <!-- Contact Name -->
           <v-col cols="12" md="6" class="ps-lg-2 pa-0">
             <v-label>Contact Name</v-label>
-            <v-text-field
-              v-model="vendor.contactName"
-              variant="outlined"
-              placeholder="John Doe"
-              :disabled="vendor.isSelected"
-            />
+            <v-text-field v-model="vendor.contactName" variant="outlined" placeholder="John Doe"
+              :disabled="vendor.isSelected" />
           </v-col>
 
           <!-- Email -->
           <v-col cols="12" md="6" class="pe-lg-2 pa-0">
             <v-label>Email</v-label>
-            <v-text-field
-              v-model="vendor.email"
-              variant="outlined"
-              placeholder="john@gmail.com"
-              :disabled="vendor.isSelected"
-            />
+            <v-text-field v-model="vendor.email" variant="outlined" placeholder="john@gmail.com"
+              :disabled="vendor.isSelected" />
           </v-col>
 
           <!-- Phone Number -->
           <v-col cols="12" md="6" class="ps-lg-2 pa-0">
             <v-label>Phone Number</v-label>
-            <v-text-field
-              v-model="vendor.phoneNumber"
-              variant="outlined"
-              placeholder="xxx-xxx-xxxx"
-              :disabled="vendor.isSelected"
-            />
+            <v-text-field v-model="vendor.phoneNumber" variant="outlined" placeholder="xxx-xxx-xxxx"
+              :disabled="vendor.isSelected" />
           </v-col>
 
           <!-- Business Link -->
           <v-col cols="12" md="6" class="pe-lg-2 pa-0">
             <v-label>Business Link</v-label>
-            <v-text-field
-              v-model="vendor.businessLink"
-              variant="outlined"
-              placeholder="www.google.com"
-              :disabled="vendor.isSelected"
-            />
+            <v-text-field v-model="vendor.businessLink" variant="outlined" placeholder="www.google.com"
+              :disabled="vendor.isSelected" />
           </v-col>
 
           <!-- Location -->
           <v-col cols="12" md="6" class="ps-lg-2 pa-0">
             <v-label>Location</v-label>
-            <v-text-field
-              v-model="vendor.location"
-              variant="outlined"
-              placeholder="Booth 101"
-            />
+            <v-text-field v-model="vendor.location" variant="outlined" placeholder="Booth 101" />
           </v-col>
 
           <!-- Business Logo -->
           <v-col cols="12" md="6" class="pa-0">
             <v-label>Business Logo</v-label>
-            <CommonFileUpload
-              v-model="vendor.businessLogo"
-              label="Choose file"
-              accept="image/*"
-              :disabled="vendor.isSelected"
-            />
+            <CommonFileUpload v-model="vendor.businessLogo" label="Choose file" accept="image/*"
+              :disabled="vendor.isSelected" />
           </v-col>
         </v-row>
 
@@ -239,7 +202,7 @@ const removeVendor = (index) => vendors.value.splice(index, 1);
 const handleSubmit = async () => {
   try {
     const formData = new FormData();
-    formData.append('event_id', store.formData.eventType.id);
+    formData.append('event_id', store.formData.basicInfo.id);
 
     vendors.value.forEach((v, i) => {
       formData.append(`vendors[${i}][id]`, v.selectedId || '');

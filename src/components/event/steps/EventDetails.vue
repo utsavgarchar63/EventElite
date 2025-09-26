@@ -123,9 +123,8 @@ const handleSubmit = async () => {
       d.setHours(hours, minutes, 0, 0);
       return d.toISOString().slice(0, 19).replace("T", " ");
     };
-
-    const payload = {
-      event_id: store.formData.eventType.id,
+      const payload = {
+      event_id: store.formData.basicInfo.id,
       start_datetime: formatDateTime(startDate.value, startTime.value),
       end_datetime: formatDateTime(endDate.value, endTime.value),
       venue: venue.value,

@@ -138,11 +138,10 @@ const handleSubmit = async () => {
     if (!validateForm()) return;
     const adminId = localStorage.getItem("admin_id")
     try {
-        console.log(localStorage.getItem("admin_id"))
         const response = await api.post('/events/basic-info', {
             event_id: store.formData.basicInfo.event_id,
             subscription_plan_id: store.formData.eventType.id,
-            admin_id :adminId ,
+            admin_id :adminId,
             event_name: eventName.value,
             event_type: eventType.value,
             description: eventDescription.value,
