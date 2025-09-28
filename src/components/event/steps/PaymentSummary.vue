@@ -132,7 +132,7 @@ const totalAmount = ref(0);
 const fetchPaymentSummary = async () => {
     try {
         const response = await api.get(
-            `/events/get-payment-summary/${store.formData.eventType.id}`
+            `/events/get-payment-summary/${store.formData.basicInfo.id}`
         );
         if (response.data.status) {
             const d = response.data.data;
