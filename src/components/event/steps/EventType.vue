@@ -14,31 +14,27 @@
         <v-row v-else>
             <v-col cols="12" sm="6" md="4" v-for="(event, index) in eventTypes" :key="index">
                 <v-card :class="['event-card', { 'selected-card': selectedEvent === event.title }]">
-                    <v-img :src="event.image || defaultImage" height="140" class="mb-4" style="border-radius: 8px; margin: 15px" cover />
+                    <v-img :src="event.image || defaultImage" height="140" class="mb-4"
+                        style="border-radius: 8px; margin: 15px" cover />
                     <v-card-title style="font-weight: 700; font-size: 18px">
                         {{ event.title }}
                     </v-card-title>
                     <v-card-subtitle class="mb-2">{{ event.sub_title }}</v-card-subtitle>
                     <v-list density="compact">
-                        <v-list-item v-for="(desc, index) in event.description.split(',')" :key="index" class="feature-item">
+                        <v-list-item v-for="(desc, index) in event.description.split(',')" :key="index"
+                            class="feature-item">
                             {{ desc.trim() }}
                         </v-list-item>
                     </v-list>
 
                     <v-card-actions>
-                        <v-btn
-                            :loading="selecting === event.id"
-                            color="primary"
-                            size="large"
-                            variant="outlined"
-                            block
-                            class="event-btn"
-                            :class="{ 'selected-btn': selectedEvent === event.title }"
-                            @click="selectEvent(event)"
-                        >
+                        <v-btn :loading="selecting === event.id" color="primary" size="large" variant="outlined" block
+                            class="event-btn" :class="{ 'selected-btn': selectedEvent === event.title }"
+                            @click="selectEvent(event)">
                             <span class="btn-text"> Get Started </span>
                             <!-- Price shown always for selected, or on hover for others -->
-                            <span class="btn-price" :class="{ visible: selectedEvent === event.title }"> &nbsp; ${{ event.price }} </span>
+                            <span class="btn-price" :class="{ visible: selectedEvent === event.title }"> &nbsp; ${{
+                                event.price }} </span>
                         </v-btn>
                     </v-card-actions>
                 </v-card>
@@ -99,39 +95,40 @@ const selectEvent = async (eventObj) => {
     selectedEvent.value = eventObj.title;
     selecting.value = eventObj.id; // show button loading
 
-    try {
-        const payload = {
-            admin_id: parseInt(admin_id),
-            subscription_plan_id: eventObj.id
-        };
+    // try {
+    //     const payload = {
+    //         admin_id: parseInt(admin_id),
+    //         subscription_plan_id: eventObj.id
+    //     };
 
-        const res = await api.post('/events/subscription', payload, {
-            headers: {
-                Authorization: `Bearer ${admin_token}`,
-                'Content-Type': 'application/json'
-            }
-        });
+    //     const res = await api.post('/events/subscription', payload, {
+    //         headers: {
+    //             Authorization: `Bearer ${admin_token}`,
+    //             'Content-Type': 'application/json'
+    //         }
+    //     });
 
-        if (res.data.status) {
-            // Save selection in store & localStorage
-            store.formData.eventType = eventObj;
-            store.formData.subscription = res.data.data.Subscription;
+    //     if (res.data.status) {
+    //         // Save selection in store & localStorage
+    store.formData.eventType = eventObj;
+    selecting.value = null;
+    store.nextStep();
+    //         store.formData.subscription = res.data.data.Subscription;
 
-            store.nextStep();
-        } else {
-            snackbar.show(res.data.message || 'Failed to select subscription', 'error');
-        }
-    } catch (err) {
-        console.error('API error:', err);
-        if (err.response?.data?.errors) {
-            const firstError = Object.values(err.response.data.errors)[0][0];
-            snackbar.show(firstError, 'error');
-        } else {
-            snackbar.show(err.response?.data?.message || 'API call failed', 'error');
-        }
-    } finally {
-        selecting.value = null; // stop button loading
-    }
+    //     } else {
+    //         snackbar.show(res.data.message || 'Failed to select subscription', 'error');
+    //     }
+    // } catch (err) {
+    //     console.error('API error:', err);
+    //     if (err.response?.data?.errors) {
+    //         const firstError = Object.values(err.response.data.errors)[0][0];
+    //         snackbar.show(firstError, 'error');
+    //     } else {
+    //         snackbar.show(err.response?.data?.message || 'API call failed', 'error');
+    //     }
+    // } finally {
+    //     selecting.value = null; // stop button loading
+    // }
 };
 
 onMounted(() => {
@@ -160,7 +157,7 @@ onMounted(() => {
 }
 
 .event-card:hover {
-    border: 1.5px solid      !important;
+    border: 1.5px solid !important;
 }
 
 /* Selected card always primary */

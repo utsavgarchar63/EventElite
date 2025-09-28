@@ -139,7 +139,7 @@ const handleSubmit = async () => {
     const adminId = localStorage.getItem("admin_id")
     try {
         const response = await api.post('/events/basic-info', {
-            event_id: "",
+                event_id: "",
             subscription_plan_id: store.formData.eventType.id,
             admin_id: adminId,
             event_name: eventName.value,
