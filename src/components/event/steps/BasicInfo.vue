@@ -139,9 +139,9 @@ const handleSubmit = async () => {
     const adminId = localStorage.getItem("admin_id")
     try {
         const response = await api.post('/events/basic-info', {
-            event_id: store.formData.basicInfo.event_id,
+            event_id: "",
             subscription_plan_id: store.formData.eventType.id,
-            admin_id :adminId,
+            admin_id: adminId,
             event_name: eventName.value,
             event_type: eventType.value,
             description: eventDescription.value,
@@ -160,6 +160,7 @@ const handleSubmit = async () => {
             console.error('API Error:', response.data.message);
         }
     } catch (err) {
+        console.log(err)
         if (err.response?.data?.errors) {
             const apiErrors = err.response.data.errors;
             const messages = Object.values(apiErrors).flat().join('\n');
