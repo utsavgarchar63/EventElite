@@ -1,4 +1,5 @@
 <template>
+
     <v-container class="d-flex justify-center align-center" style="min-height: 100vh">
         <div class="form-wrapper">
             <!-- Heading -->
@@ -71,7 +72,10 @@
                     <v-col cols="12" class="d-flex justify-end">
                         <v-btn color="primary" size="large" variant="outlined" class="mr-2" @click="handleCancel"> Go
                             Back </v-btn>
-                        <v-btn type="submit" color="primary" size="large">Save and Exit</v-btn>
+                        <v-btn type="submit" color="primary" size="large" :loading="isSubmitting"
+                            :disabled="isSubmitting">
+                            Save and Exit
+                        </v-btn>
                     </v-col>
                 </v-row>
             </v-form>
@@ -89,6 +93,7 @@ const store = useEventStore();
 const snackbar = useSnackbarStore();
 
 // File refs
+const isSubmitting = ref(false);
 const eventLogo = ref(null);
 const eventImage = ref(null);
 const eventVideo = ref(null);
@@ -170,9 +175,9 @@ const triggerVideoBrowse = () => videoInput.value?.click();
 const handleSubmit = async () => {
     if (logoError.value || imageError.value || videoError.value) return;
 
+    isSubmitting.value = true; // start loader
     try {
         const formData = new FormData();
-        // formData.append('event_id', store.formData.eventType.id);
         formData.append('event_id', store.formData.basicInfo?.id);
         formData.append('facebook_link', facebookLink.value);
         formData.append('instagram_link', instagramLink.value);
@@ -183,28 +188,25 @@ const handleSubmit = async () => {
         if (eventVideo.value) formData.append('event_video', eventVideo.value);
 
         const res = await api.post('/events/media', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
+            headers: { 'Content-Type': 'multipart/form-data' }
         });
 
         if (res.data.status) {
-            console.log('Media saved', res.data.data);
             store.formData.mediaMarketing = res.data.data;
             store.nextStep();
         }
     } catch (err) {
         if (err.response?.data?.errors) {
-            // Laravel style validation errors
-            const errors = err.response.data.errors;
-            // Join all messages into one string
-            const messages = Object.values(errors).flat().join('\n');
+            const messages = Object.values(err.response.data.errors).flat().join('\n');
             snackbar.show(messages, 'error');
         } else {
             snackbar.show('Something went wrong', 'error');
         }
+    } finally {
+        isSubmitting.value = false; // stop loader
     }
 };
+
 
 const handleCancel = () => {
     store.prevStep();
