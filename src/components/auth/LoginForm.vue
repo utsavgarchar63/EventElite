@@ -85,7 +85,7 @@ const handleSubmit = async () => {
             } else if (responseData.role == "admin") {
                 router.push("/admin/dashboard");
             } else if (responseData.role == "user") {
-                router.push("/user/dashboard");
+                router.push("/user/events");
             }
 
         } else {
