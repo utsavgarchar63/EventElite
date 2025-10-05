@@ -33,6 +33,7 @@
         "@mdi/font": "7.4.47",
         "@rushstack/eslint-patch": "1.11.0",
         "@types/chance": "1.1.6",
+        "@types/crypto-js": "^4.2.2",
         "@types/node": "22.13.13",
         "@vitejs/plugin-vue": "5.2.3",
         "@vue/eslint-config-prettier": "10.2.0",
