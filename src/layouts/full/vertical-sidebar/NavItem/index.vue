@@ -22,6 +22,9 @@ function getDynamicPath(to) {
     if (path === '/super-admin/dashboard' && route.path.startsWith('/super-admin/dashboard')) {
         return route.path;
     }
+    if (path === '/user/events' && route.path.startsWith('/user/events')) {
+        return route.path;
+    }
     return path;
 }
 
@@ -68,4 +71,3 @@ function getDynamicPath(to) {
     </v-list-item>
 
 </template>
-    

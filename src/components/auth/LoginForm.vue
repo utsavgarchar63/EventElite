@@ -48,7 +48,7 @@ const handleSubmit = async () => {
         const response = await api.post("/admin/login", {
             email: email.value,
             password: password.value,
-            fcm_token: "4gD7Y8oW3l-T9pU5rC2eN6xS1mJ0fG3vQ7zK1bR4aD6" // later make dynamic
+            fcm_token: "4gD7Y8oW3l-T9pU5rC2eN6xS1mJ0fG3vQ7zK1bR4aD6"
         });
 
         const responseData = response.data;
@@ -84,7 +84,10 @@ const handleSubmit = async () => {
                 router.push("/super-admin/dashboard");
             } else if (responseData.role == "admin") {
                 router.push("/admin/dashboard");
+            } else if (responseData.role == "user") {
+                router.push("/user/dashboard");
             }
+
         } else {
             snackbar.show(responseData.message || "Login failed", "error");
 

@@ -41,6 +41,21 @@ const superAdminMenu: Menu[] = [
     }
 ];
 
+const userMenu: Menu[] = [
+    {
+        title: 'My Events',
+        icon: CalendarIcon,
+        to: '/user/events',
+        external: false
+    },
+    {
+        title: 'My Tickets',
+        icon: TicketIcon,
+        to: '/super-admin/reports',
+        external: false
+    }
+];
+
 const adminMenu: Menu[] = [
     {
         title: 'Overview',
@@ -95,6 +110,8 @@ export function useSidebarMenu() {
             return superAdminMenu;
         } else if (route.path.startsWith('/admin')) {
             return adminMenu;
+        } else if (route.path.startsWith('/user')) {
+            return userMenu;
         }
         return [];
     });

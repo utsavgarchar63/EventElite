@@ -6,6 +6,18 @@ const MainRoutes = {
     component: () => import('@/layouts/full/FullLayout.vue'),
     children: [
         {
+            name: 'UserDashboard',
+            path: '/user/events',
+            component: () => import('@/views/dashboard/EventsDashboard.vue'),
+            meta: { requiresAuth: true, roles: ['user'] }
+        },
+        {
+            name: 'EventDetail',
+            path: '/user/events/detail',
+            component: () => import('@/views/pages/UserEventDetail.vue'),
+            meta: { requiresAuth: true, roles: ['user'] }
+        },
+        {
             name: 'AdminDashboard',
             path: '/admin/dashboard',
             component: () => import('@/views/dashboard/AdminDashboard.vue'),

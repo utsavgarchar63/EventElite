@@ -1,0 +1,48 @@
+import eventImg from '@/assets/images/events/banner.webp';
+
+export const events = [
+  {
+    id: 1,
+    title: 'Tech Innovation Summit 2024',
+    date: '20 October 2024',
+    time: '9:00 AM – 6:00 PM',
+    category: 'Tech Conference',
+    location: 'Hard Rock Stadium, Miami, FL',
+    tickets: 12,
+    status: 'Upcoming',
+    image: eventImg,
+  },
+  {
+    id: 2,
+    title: 'Cloud Computing Summit',
+    date: '5 December 2024',
+    time: '10:00 AM – 5:00 PM',
+    category: 'Cloud Tech',
+    location: 'Austin Convention Center, TX',
+    tickets: 2,
+    status: 'Upcoming',
+    image: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564',
+  },
+  {
+    id: 3,
+    title: 'AI Expo 2023',
+    date: '15 June 2023',
+    time: '8:00 AM – 4:00 PM',
+    category: 'Artificial Intelligence',
+    location: 'London Tech Park, UK',
+    tickets: 45,
+    status: 'Past',
+    image: 'https://images.unsplash.com/photo-1551836022-4c4c79ecde51',
+  },
+  {
+    id: 4,
+    title: 'Startup Conclave 2023',
+    date: '22 August 2023',
+    time: '9:30 AM – 6:30 PM',
+    category: 'Entrepreneurship',
+    location: 'Bangalore International Center, IN',
+    tickets: 0,
+    status: 'Cancelled',
+    image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d',
+  },
+];
