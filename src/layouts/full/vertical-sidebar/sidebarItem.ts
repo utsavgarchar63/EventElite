@@ -70,12 +70,6 @@ const adminMenu: Menu[] = [
         external: false
     },
     {
-        title: 'Tickets',
-        icon: TicketIcon,
-        to: '/admin/tickets',
-        external: false
-    },
-    {
         title: 'Attendee',
         icon: UserIcon,
         to: ['/admin/attendees', '/admin/attendee'],

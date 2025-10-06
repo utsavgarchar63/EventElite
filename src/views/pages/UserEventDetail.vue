@@ -1,8 +1,20 @@
 <template>
   <v-container fluid>
-    <!-- Event Banner -->
-    <div style="position: relative;">
-      <v-img :src="event?.image" height="300" class="rounded-lg mb-4" cover></v-img>
+    <!-- Loader -->
+    <div v-if="loading" class="d-flex justify-center" style="height: 200px">
+      <v-progress-circular indeterminate color="primary" size="48" class="my-auto"></v-progress-circular>
+    </div>
+
+    <!-- Event Details -->
+    <div v-else-if="event" style="position: relative;">
+      <!-- Event Banner -->
+      <v-img
+        :src="bannerImage"
+        height="300"
+        class="rounded-lg mb-4"
+        cover
+        @error="onImageError"
+      ></v-img>
 
       <!-- Dark Gradient Overlay -->
       <div style="
@@ -16,14 +28,20 @@
         "></div>
 
       <!-- Category Chip -->
-      <v-chip color="white" size="small" class="text-body-2 font-weight-bold" style="
+      <v-chip
+        color="white"
+        size="small"
+        class="text-body-2 font-weight-bold"
+        style="
           position: absolute;
           background-color: rgba(255, 255, 255, 0.3);
           top: 15px;
           left: 15px;
           color: #fff;
-        " label>
-        {{ event?.category || "Event" }}
+        "
+        label
+      >
+        {{ event.event_type || "Event" }}
       </v-chip>
 
       <!-- Event Info (Bottom Overlay) -->
@@ -33,25 +51,20 @@
           left: 20px;
           color: white;
         ">
-        <h1 class="text-h4 font-weight-bold mb-2">{{ event?.title }}</h1>
+        <h1 class="text-h4 font-weight-bold mb-2">{{ event.event_name }}</h1>
 
         <div class="d-flex align-center flex-wrap" style="gap: 15px; font-size: 14px;">
-          <!-- <div class="d-flex align-center">
-            <v-icon size="18" class="me-1" color="white">mdi-calendar</v-icon>
-            <span>{{ event?.date }}</span>
-          </div> -->
           <div class="d-flex align-center">
             <v-icon size="18" class="me-1" color="white">mdi-calendar-blank-outline</v-icon>
-            <span>{{ event?.date }}</span>
+            <span>
+              {{ formatDate(event.details?.start_datetime) }} -
+              {{ formatDate(event.details?.end_datetime) }}
+            </span>
           </div>
 
           <div class="d-flex align-center">
-            <v-icon size="18" class="me-1" color="white">mdi-clock-outline</v-icon>
-            <span>{{ event?.time || "9:00 AM – 6:00 PM" }}</span>
-          </div>
-          <div class="d-flex align-center">
             <v-icon size="18" class="me-1" color="white">mdi-map-marker-outline</v-icon>
-            <span>{{ event?.location }}</span>
+            <span>{{ event.details?.venue_address || "N/A" }}</span>
           </div>
         </div>
 
@@ -63,7 +76,11 @@
       </div>
     </div>
 
-
+    <!-- No Event Found -->
+    <div v-else class="text-center mt-10">
+      <v-icon size="48" color="grey">mdi-alert-circle-outline</v-icon>
+      <p class="text-subtitle-1 mt-3">No event details found.</p>
+    </div>
   </v-container>
 </template>
 
@@ -71,36 +88,62 @@
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import CryptoJS from "crypto-js";
-import { events } from "@/data/events";
+import api from "@/plugins/axios";
+import defaultEventImg from '@/assets/images/events/banner.webp';
 
 const route = useRoute();
 const event = ref<any>(null);
+const loading = ref<boolean>(true);
+const bannerImage = ref<string>(defaultEventImg);
 
-onMounted(() => {
+// Helper: Format date
+const formatDate = (dateStr?: string) => {
+  if (!dateStr) return "N/A";
+  return new Date(dateStr).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+// Handle image load error
+const onImageError = () => {
+  bannerImage.value = defaultEventImg;
+};
+
+onMounted(async () => {
   const encryptedId = route.query.id as string;
   if (encryptedId) {
-    const bytes = CryptoJS.AES.decrypt(encryptedId, import.meta.env.VITE_SECRET_KEY);
-    const id = parseInt(bytes.toString(CryptoJS.enc.Utf8));
-    console.log("Decrypted Event ID:", id);
+    try {
+      const bytes = CryptoJS.AES.decrypt(
+        encryptedId,
+        import.meta.env.VITE_SECRET_KEY
+      );
+      const id = parseInt(bytes.toString(CryptoJS.enc.Utf8));
 
-    event.value = events.find((e) => e.id === id) || null;
+      // Fetch event details from API
+      const res = await api.get(`/event-detail/${id}`);
+
+      if (res.data?.status && res.data?.data) {
+        event.value = res.data.data;
+
+        // Use sponsor logo if available, otherwise default banner
+        if (event.value.sponsors?.length) {
+          bannerImage.value = `https://eventelite-eanm.onrender.com/storage/${event.value.sponsors[0].logo}`;
+        }
+      } else {
+        event.value = null;
+      }
+    } catch (error) {
+      console.error("Error fetching event details:", error);
+      event.value = null;
+    } finally {
+      loading.value = false;
+    }
+  } else {
+    loading.value = false;
   }
 });
-
-// Status chip color
-const getStatusColor = (status?: string) => {
-  if (!status) return "grey";
-  switch (status.toLowerCase()) {
-    case "upcoming":
-      return "#33B875";
-    case "past":
-      return "#999999";
-    case "cancelled":
-      return "#E53935";
-    default:
-      return "grey";
-  }
-};
 </script>
 
 <style scoped>
