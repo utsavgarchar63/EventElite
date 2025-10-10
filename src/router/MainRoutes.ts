@@ -18,7 +18,7 @@ const MainRoutes = {
             meta: { requiresAuth: true, roles: ['user'] }
         },
         {
-            name: 'EventDetail',
+            name: 'MyTickets',
             path: '/user/tickets',
             component: () => import('@/views/pages/UserTickets.vue'),
             meta: { requiresAuth: true, roles: ['user'] }
