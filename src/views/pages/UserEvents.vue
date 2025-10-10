@@ -23,9 +23,10 @@
                   {{ event?.event_name }}
                 </div>
                 <div class="text-body-2 mb-1" style="color: #717182;">
-                  <v-icon size="18" color="#717182" class="me-1">mdi-calendar</v-icon>
-                  {{ event?.event_date || 'Date not specified' }}
-                </div>
+  <v-icon size="18" color="#717182" class="me-1">mdi-calendar</v-icon>
+  {{ formatDate(event?.event_date) }}
+</div>
+
                 <div class="text-body-2 mb-1" style="color: #717182;">
                   <v-icon size="18" color="#717182" class="me-1">mdi-map-marker</v-icon>
                   {{ event?.venue }}
@@ -97,6 +98,23 @@ const props = defineProps<{
 watch(() => props.refreshKey, () => {
   fetchEvents();
 });
+
+const formatDate = (isoDate: string) => {
+  if (!isoDate) return "Date not specified";
+  const date = new Date(isoDate);
+
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  };
+
+  return date.toLocaleString("en-US", options);
+};
+
 
 const events = ref<{
   upcomingEvents: EventItem[];
