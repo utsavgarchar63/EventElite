@@ -51,7 +51,7 @@ const userMenu: Menu[] = [
     {
         title: 'My Tickets',
         icon: TicketIcon,
-        to: '/super-admin/reports',
+        to: '/user/tickets',
         external: false
     }
 ];

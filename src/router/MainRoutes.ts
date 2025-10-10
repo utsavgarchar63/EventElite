@@ -18,6 +18,12 @@ const MainRoutes = {
             meta: { requiresAuth: true, roles: ['user'] }
         },
         {
+            name: 'EventDetail',
+            path: '/user/tickets',
+            component: () => import('@/views/pages/UserTickets.vue'),
+            meta: { requiresAuth: true, roles: ['user'] }
+        },
+        {
             name: 'AdminDashboard',
             path: '/admin/dashboard',
             component: () => import('@/views/dashboard/AdminDashboard.vue'),

@@ -345,7 +345,7 @@
                     <h4 class="text-h6 font-weight-bold mb-1">
                       {{ sponsor.business_name }}
                     </h4>
-                    <v-btn color="grey-darken-2" variant="outlined" size="small" prepend-icon="mdi-open-in-new"
+                    <v-btn color="grey-darken-2" variant="outlined" size="small" class="mt-4" prepend-icon="mdi-open-in-new"
                       :href="sponsor.link" target="_blank" block>
                       Visit Website
                     </v-btn>
@@ -356,6 +356,85 @@
           </div>
         </v-expand-transition>
       </div>
+
+      <!-- Vendors Section -->
+      <div v-if="event.vendors?.length" class="border rounded-lg pa-5 mt-5" style="background: white;">
+        <!-- Header with Toggle -->
+        <div class="d-flex align-center justify-space-between" @click="showVendors = !showVendors"
+          style="cursor: pointer;">
+          <div class="d-flex align-center">
+            <v-icon class="me-2">mdi-store-outline</v-icon>
+            <h3 class="text-h4 font-weight-bold mb-0">Vendors ({{ event.vendors.length }})</h3>
+          </div>
+          <v-icon :class="{ 'rotate-180': showVendors }" transition="rotate-transition">mdi-chevron-up</v-icon>
+        </div>
+
+        <v-expand-transition>
+          <div v-show="showVendors" class="mt-4">
+            <!-- Search bar -->
+            <v-text-field v-model="vendorSearch" variant="outlined" prepend-inner-icon="mdi-magnify"
+              placeholder="Search vendors..." class="mb-5" hide-details></v-text-field>
+
+            <v-row>
+              <v-col v-for="(vendor, index) in filteredVendors" :key="index" cols="12" md="6" lg="4" class="mb-4">
+                <v-card class="pa-4" elevation="0" style="border: 1px solid #e0e0e0; border-radius: 12px;">
+                  <div class="d-flex align-start">
+                    <!-- Vendor Image -->
+                    <v-avatar size="60" class="me-3">
+                      <v-img
+                        :src="vendor.logo ? `https://eventelite-eanm.onrender.com/storage/${vendor.logo}` : picture"
+                        :alt="vendor.name" height="60" width="60">
+                        <template #error>
+                          <v-img :src="picture" height="60" />
+                        </template>
+                      </v-img>
+                    </v-avatar>
+
+                    <!-- Vendor Info -->
+                    <div>
+                      <h4 class="text-subtitle-1 font-weight-bold mb-1">{{ vendor.name }}</h4>
+                      <p class="text-body-2 mb-0" style="color: grey;">
+                        {{ vendor.category || vendor.pivot?.location || "Vendor" }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="mt-3 text-body-2" style="color: grey;">
+                    <div class="d-flex align-center mb-1">
+                      <v-icon size="16" class="me-1">mdi-map-marker-outline</v-icon>
+                      Booth {{ vendor.booth || "N/A" }}
+                    </div>
+                    <div class="d-flex align-center mb-1">
+                      <v-icon size="16" class="me-1">mdi-clock-outline</v-icon>
+                      {{ vendor.time || "9:00 AM - 5:00 PM" }}
+                    </div>
+
+                  </div>
+
+                  <p class="mt-2 text-body-2" style="color: grey;">
+                    {{ vendor.description || "No description available." }}
+                  </p>
+
+                  <div class="d-flex justify-space-between mt-3">
+                    <v-btn size="small" color="grey-darken-2" variant="outlined" prepend-icon="mdi-map-marker-outline">
+                      Find
+                    </v-btn>
+                    <!-- <v-btn size="small" color="grey-darken-2" variant="outlined" prepend-icon="mdi-phone">
+                      Call
+                    </v-btn> -->
+                    <v-btn size="small" color="grey-darken-2" variant="outlined" prepend-icon="mdi-open-in-new"
+                      :href="vendor.business_link" target="_blank">
+                      Visit Website
+                    </v-btn>
+
+                  </div>
+                </v-card>
+              </v-col>
+            </v-row>
+          </div>
+        </v-expand-transition>
+      </div>
+
 
 
     </div>
@@ -375,13 +454,16 @@ import CryptoJS from "crypto-js";
 import api from "@/plugins/axios";
 import defaultEventImg from "@/assets/images/events/banner.webp";
 import picture from "@/assets/images/common/picture.png"
-import crown from "@/assets/images/icons/crown.svg"
 const route = useRoute();
 const showSpeakers = ref(true);
 const event = ref<any>(null);
 const showSponsors = ref(true);
 const loading = ref<boolean>(true);
 const bannerImage = ref<string>(defaultEventImg);
+const showVendors = ref(true);
+const vendorSearch = ref("");
+
+
 
 // Static "What's Included"
 const whatsIncluded = ref([
@@ -432,6 +514,19 @@ const formatTime = (datetime?: string) => {
     minute: "2-digit",
   });
 };
+
+const filteredVendors = computed(() => {
+  const vendors = event.value?.vendors || [];
+  if (!vendorSearch.value) return vendors;
+
+  const searchTerm = vendorSearch.value.toLowerCase();
+  return vendors.filter((v: any) =>
+    (v.contact_name?.toLowerCase().includes(searchTerm) ||
+     v.business_name?.toLowerCase().includes(searchTerm))
+  );
+});
+
+
 
 // Common image error handler for all v-img
 const getImageUrl = (logo?: string) => {
