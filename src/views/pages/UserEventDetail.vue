@@ -9,7 +9,12 @@
     <div v-else-if="event">
       <div style="position: relative;">
         <!-- Event Banner -->
-        <v-img :src="bannerImage" height="300" class="rounded-lg mb-4" cover @error="onImageError"></v-img>
+        <v-img :src="bannerImage" height="300" class="rounded-lg mb-4" cover>
+          <template #error>
+            <v-img :src="bannerImage || defaultEventImg" @error="onBannerImageError" height="300"
+              class="rounded-lg mb-4" cover />
+          </template>
+        </v-img>
 
         <!-- Dark Gradient Overlay -->
         <div style="
@@ -74,26 +79,6 @@
           {{ event.description || "N/A" }}
         </p>
 
-        <v-row class="mt-5">
-          <!-- Left Column: What's Included -->
-          <v-col cols="12" md="6">
-            <h4 class="text-h5 font-weight-bold mb-3">What's Included</h4>
-            <div v-for="(item, index) in whatsIncluded" :key="index" class="d-flex align-center mb-2">
-              <v-icon color="success" size="20" class="me-2">mdi-check-circle-outline</v-icon>
-              <span>{{ item }}</span>
-            </div>
-          </v-col>
-
-          <!-- Right Column: Schedule Highlights -->
-          <v-col cols="12" md="6">
-            <h4 class="text-h5 font-weight-bold mb-3">Schedule Highlights</h4>
-            <div v-for="(highlight, index) in scheduleHighlights" :key="index"
-              class="d-flex align-center justify-space-between mb-2">
-              <span style="font-weight: 500;color: grey;">{{ highlight.time }}</span>
-              <span>{{ highlight.activity }}</span>
-            </div>
-          </v-col>
-        </v-row>
       </div>
 
       <!-- What's Included & Schedule Highlights -->
@@ -137,8 +122,8 @@
             <div class="d-flex justify-center align-center rounded-lg"
               style="height: 200px; background-color: #f4f5f7;">
               <div class="text-center">
-                <v-icon color="grey" size="36">mdi-map-outline</v-icon>
-                <p class="mt-2 text-subtitle-2 text-grey">Interactive map coming soon</p>
+                <v-icon style="color: grey;" size="36">mdi-map-outline</v-icon>
+                <p class="mt-2 text-subtitle-2 font-weight-bold" style="color: grey;">Interactive map coming soon</p>
               </div>
             </div>
 
@@ -151,6 +136,228 @@
         </v-row>
 
       </div>
+      <!-- Speakers Section -->
+      <div v-if="event.speakers?.length" class="border rounded-lg pa-5 mt-5" style="background: white;">
+        <!-- Header with Toggle -->
+        <div class="d-flex align-center justify-space-between" @click="showSpeakers = !showSpeakers"
+          style="cursor: pointer;">
+          <div class="d-flex align-center">
+            <v-icon class="me-2">mdi-account-group-outline</v-icon>
+            <h3 class="text-h4 font-weight-bold mb-0">Speakers ({{ event.speakers.length }})</h3>
+          </div>
+          <v-icon :class="{ 'rotate-180': showSpeakers }" transition="rotate-transition">mdi-chevron-up</v-icon>
+        </div>
+
+        <v-expand-transition>
+          <div v-show="showSpeakers" class="mt-4">
+            <v-row>
+              <v-col v-for="(speaker, index) in event.speakers" :key="index" cols="12" md="6" class="mb-4">
+                <v-card class="pa-4" elevation="0" style="border: 1px solid #e0e0e0; border-radius: 12px;">
+                  <v-row no-gutters align="start">
+                    <!-- Profile Image -->
+                    <v-col cols="3" class="d-flex ">
+                      <v-avatar size="70">
+                        <v-img :src="speaker.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png'"
+                          alt="Speaker Image" @error="onImageError"></v-img>
+                      </v-avatar>
+                    </v-col>
+
+                    <!-- Speaker Details -->
+                    <v-col cols="9">
+                      <div>
+                        <h4 class="text-h6 font-weight-bold mb-1">{{ speaker.name }}</h4>
+                        <p class="text-body-2 mb-0" style="color: grey;">
+                          {{ speaker.designation || 'Speaker' }}
+                        </p>
+                        <p class="text-body-2 mb-2" style="color: grey;">
+                          {{ speaker.company || 'N/A' }}
+                        </p>
+
+                        <a href="#" class="text-body-2 font-weight-medium"
+                          style="color: #1976d2; text-decoration: none;">
+                          {{ speaker.topic || 'Session Title Coming Soon' }}
+                        </a>
+
+                        <div class="d-flex align-center mt-2" style="gap: 8px; font-size: 14px; color: grey;">
+                          <v-icon size="16">mdi-clock-outline</v-icon>
+                          <span>
+                            {{ formatTime(speaker.pivot?.start_datetime) }} -
+                            {{ formatTime(speaker.pivot?.end_datetime) }}
+                          </span>
+                          <v-icon size="16">mdi-map-marker-outline</v-icon>
+                          <span>{{ speaker.pivot?.location || 'Main Stage' }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Social & Icons -->
+                      <div class="d-flex align-center mt-3" style="gap: 12px;">
+                        <!-- LinkedIn -->
+                        <v-btn icon size="small" variant="outlined" style="border-color: #ccc; color: #000;">
+                          <v-icon size="18">mdi-linkedin</v-icon>
+                        </v-btn>
+
+                        <!-- Twitter -->
+                        <v-btn icon size="small" variant="outlined" style="border-color: #ccc; color: #000;">
+                          <v-icon size="18">mdi-twitter</v-icon>
+                        </v-btn>
+
+                        <v-spacer></v-spacer>
+
+                        <!-- Heart -->
+                        <v-btn icon size="small" variant="text" style="color: #000;">
+                          <v-icon>mdi-heart-outline</v-icon>
+                        </v-btn>
+
+                        <!-- Bell -->
+                        <v-btn icon size="small" variant="text" style="color: #000;">
+                          <v-icon>mdi-bell-outline</v-icon>
+                        </v-btn>
+                      </div>
+
+                    </v-col>
+                  </v-row>
+                </v-card>
+              </v-col>
+            </v-row>
+          </div>
+        </v-expand-transition>
+
+
+      </div>
+
+      <!-- Sponsors Section -->
+      <div v-if="event.sponsors?.length" class="border rounded-lg pa-5 mt-5" style="background: white;">
+        <!-- Header -->
+        <div class="d-flex align-center justify-space-between" @click="showSponsors = !showSponsors"
+          style="cursor: pointer;">
+          <div class="d-flex align-center">
+            <v-icon class="me-2">mdi-domain</v-icon>
+            <h3 class="text-h4 font-weight-bold mb-0">
+              Sponsors ({{ event.sponsors.length }})
+            </h3>
+          </div>
+          <v-icon :class="{ 'rotate-180': showSponsors }" transition="rotate-transition">mdi-chevron-up</v-icon>
+        </div>
+
+        <v-expand-transition>
+          <div v-show="showSponsors" class="mt-4">
+
+            <!-- Premium Sponsors -->
+            <div v-if="groupedSponsors.premium.length" class="mb-6">
+              <div class="d-flex align-center mb-3">
+                <v-icon color="amber" class="me-2" style="color: #f2bd26;">mdi-crown-outline</v-icon>
+                <h4 class="text-h5 font-weight-bold mb-0">Premium Sponsors</h4>
+              </div>
+              <v-row>
+                <v-col v-for="(sponsor, index) in groupedSponsors.premium" :key="'premium-' + index" cols="12" md="6"
+                  lg="4">
+                  <v-card elevation="0" class="pa-5 text-center"
+                    style="background-color: #fffbea; border: 1px solid #ffecb3; border-radius: 12px;">
+                    <v-avatar size="90" class="mb-3">
+                      <v-img :src="`https://eventelite-eanm.onrender.com/storage/${sponsor.logo}`"
+                        :alt="sponsor.business_name" height="90">
+                        <template #error>
+                          <v-img :src="picture" alt="Fallback image" height="90" />
+                        </template>
+                      </v-img>
+
+                    </v-avatar>
+                    <h4 class="text-h6 font-weight-bold mb-1">
+                      {{ sponsor.business_name }}
+                    </h4>
+                    <p class="text-body-2 mb-2" style="color: grey;">
+                      {{ sponsor.tagline || sponsor.pivot?.tier || 'Sponsor' }}
+                    </p>
+                    <div class="d-flex align-center justify-center mb-4 gap-2">
+                      <v-chip size="small" color="transparent" style="color: oklch(.554 .135 66.442);">
+                        {{ sponsor.pivot?.tier || 'Premium Sponsor' }}
+                      </v-chip>
+
+                      <v-icon size="20" color="rgb(242, 189, 38)">mdi-crown-outline</v-icon>
+                    </div>
+
+                    <v-btn color="grey-darken-2" variant="outlined" size="small" prepend-icon="mdi-open-in-new"
+                      :href="sponsor.link" target="_blank" block>
+                      Visit Website
+                    </v-btn>
+                  </v-card>
+                </v-col>
+              </v-row>
+            </div>
+
+            <!-- Gold Sponsors -->
+            <div v-if="groupedSponsors.gold.length" class="mb-6">
+              <div class="d-flex align-center mb-3">
+                <!-- <v-icon color="deep-orange" class="me-2">mdi-medal-outline</v-icon> -->
+                <v-icon color="rgb(242, 189, 38)" class="me-2">mdi-medal-outline</v-icon>
+
+                <h4 class="text-h5 font-weight-bold mb-0">Gold Sponsors</h4>
+              </div>
+              <v-row>
+                <v-col v-for="(sponsor, index) in groupedSponsors.gold" :key="'gold-' + index" cols="12" md="6" lg="4">
+                  <v-card elevation="0" class="pa-5 text-center"
+                    style="background-color: #fffbea; border: 1.5px solid #fff085; border-radius: 12px !important;">
+                    <v-avatar size="90" class="mb-3">
+                      <v-img
+                        :src="sponsor.logo ? `https://eventelite-eanm.onrender.com/storage/${sponsor.logo}` : picture"
+                        @error="onImageError" height="90">
+                        <template #error>
+                          <v-img :src="picture" height="90" />
+                        </template>
+                      </v-img>
+
+                    </v-avatar>
+                    <h4 class="text-h6 font-weight-bold mb-1">
+                      {{ sponsor.business_name }}
+                    </h4>
+                    <p class="text-body-2 mb-2" style="color: grey; text-transform: capitalize;">
+                      {{ `${sponsor.pivot?.tier} Sponsor` || 'Gold Sponsor' }}
+                    </p>
+                    <v-btn color="black" variant="outlined" size="small" prepend-icon="mdi-open-in-new"
+                      :href="sponsor.link" target="_blank" block>
+                      Visit Website
+                    </v-btn>
+                  </v-card>
+                </v-col>
+              </v-row>
+            </div>
+
+            <!-- Other Sponsors -->
+            <div v-if="groupedSponsors.others.length">
+              <div class="d-flex align-center mb-3">
+                <v-icon color="grey" class="me-2">mdi-star-outline</v-icon>
+                <h4 class="text-h5 font-weight-bold mb-0">Sponsors</h4>
+              </div>
+              <v-row>
+                <v-col v-for="(sponsor, index) in groupedSponsors.others" :key="'other-' + index" cols="12" md="6"
+                  lg="3">
+                  <v-card elevation="0" class="pa-4 text-center"
+                    style="border: 1px solid #e0e0e0; border-radius: 12px;">
+                    <v-avatar size="70" class="mb-3">
+                      <v-img :src="`https://eventelite-eanm.onrender.com/storage/${sponsor.logo}`"
+                        :alt="sponsor.business_name">
+                        <template #error>
+                          <v-img :src="picture" alt="Fallback image" />
+                        </template>
+                      </v-img>
+
+                    </v-avatar>
+                    <h4 class="text-h6 font-weight-bold mb-1">
+                      {{ sponsor.business_name }}
+                    </h4>
+                    <v-btn color="grey-darken-2" variant="outlined" size="small" prepend-icon="mdi-open-in-new"
+                      :href="sponsor.link" target="_blank" block>
+                      Visit Website
+                    </v-btn>
+                  </v-card>
+                </v-col>
+              </v-row>
+            </div>
+          </div>
+        </v-expand-transition>
+      </div>
+
+
     </div>
 
     <!-- No Event Found -->
@@ -162,14 +369,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import CryptoJS from "crypto-js";
 import api from "@/plugins/axios";
 import defaultEventImg from "@/assets/images/events/banner.webp";
-
+import picture from "@/assets/images/common/picture.png"
+import crown from "@/assets/images/icons/crown.svg"
 const route = useRoute();
+const showSpeakers = ref(true);
 const event = ref<any>(null);
+const showSponsors = ref(true);
 const loading = ref<boolean>(true);
 const bannerImage = ref<string>(defaultEventImg);
 
@@ -204,8 +414,37 @@ const formatDate = (dateStr?: string) => {
   });
 };
 
+const groupedSponsors = computed(() => {
+  const sponsors = event.value?.sponsors || [];
+  return {
+    premium: sponsors.filter(s => ['Premium', 'Platinum'].includes(s.pivot?.tier)),
+    gold: sponsors.filter(s => s.pivot?.tier === 'Gold'),
+    others: sponsors.filter(s => !['Premium', 'Platinum', 'Gold'].includes(s.pivot?.tier)),
+  };
+});
+
+const formatTime = (datetime?: string) => {
+  if (!datetime) return "N/A";
+  const date = new Date(datetime);
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+// Common image error handler for all v-img
+const getImageUrl = (logo?: string) => {
+  if (!logo) return picture;
+  return `https://eventelite-eanm.onrender.com/storage/${logo}`;
+};
+
+const onImageError = (value?: string) => {
+  bannerImage.value = defaultEventImg; // or picture for sponsor images
+};
+
+
 // Handle image load error
-const onImageError = () => {
+const onBannerImageError = () => {
   bannerImage.value = defaultEventImg;
 };
 
@@ -242,10 +481,27 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+
+
 </script>
 
 <style scoped>
 .v-img {
   border-radius: 12px;
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
+}
+
+.v-icon {
+  transition: transform 0.3s ease;
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
 }
 </style>
