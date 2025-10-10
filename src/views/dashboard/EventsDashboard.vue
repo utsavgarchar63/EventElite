@@ -12,55 +12,37 @@
       <v-row class="align-center">
         <!-- Tabs -->
         <v-col>
-          <v-tabs
-            v-model="activeTab"
-            background-color="white"
-            color="primary"
-            slider-color="primary"
-            class="main-tabs"
-          >
-            <v-tab value="upcoming" class="text-body-1">Upcoming Events</v-tab>
-            <v-tab value="past" class="text-body-1">Past Events</v-tab>
-            <v-tab value="cancelled" class="text-body-1">Cancelled Events</v-tab>
+          <v-tabs v-model="activeTab" background-color="white" color="primary" slider-color="primary" class="main-tabs">
+            <v-tab value="upcoming" class="text-body-1">Upcoming</v-tab>
+            <v-tab value="past" class="text-body-1">Past</v-tab>
+            <v-tab value="cancelled" class="text-body-1">Cancelled</v-tab>
           </v-tabs>
         </v-col>
 
         <!-- Refresh and Search Section -->
         <v-col cols="auto" class="d-flex align-center gap-3">
           <!-- Refresh Button -->
-          <v-btn
-            variant="outlined"
-            color="#525454"
-            style="border-color: #D5D6DA;"
-            icon="mdi-refresh"
-            @click="refreshEvents"
-          ></v-btn>
+          <v-btn variant="outlined" color="#525454" style="border-color: #D5D6DA;" icon="mdi-refresh"
+            @click="refreshEvents"></v-btn>
 
           <!-- Search Field -->
-          <v-text-field
-            v-model="searchQuery"
-            density="compact"
-            variant="outlined"
-            hide-details
-            placeholder="Search events"
-            prepend-inner-icon="mdi-magnify"
-            class="search-field"
-          />
+          <v-text-field v-model="searchQuery" density="compact" variant="outlined" hide-details
+            placeholder="Search events" prepend-inner-icon="mdi-magnify" class="search-field" />
         </v-col>
       </v-row>
 
       <!-- Tabs Content -->
       <v-window v-model="activeTab">
         <v-window-item value="upcoming">
-          <UserEvents :eventType="'upcoming'" :search="searchQuery" />
+          <UserEvents :eventType="'upcoming'" :search="searchQuery" :refreshKey="refreshKeys.upcoming" />
         </v-window-item>
 
         <v-window-item value="past">
-          <UserEvents :eventType="'past'" :search="searchQuery" />
+          <UserEvents :eventType="'past'" :search="searchQuery" :refreshKey="refreshKeys.past" />
         </v-window-item>
 
         <v-window-item value="cancelled">
-          <UserEvents :eventType="'cancelled'" :search="searchQuery" />
+          <UserEvents :eventType="'cancelled'" :search="searchQuery" :refreshKey="refreshKeys.cancelled" />
         </v-window-item>
       </v-window>
     </div>
@@ -68,15 +50,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+
+import { reactive, ref } from "vue";
 import UserEvents from "../pages/UserEvents.vue";
 
 const activeTab = ref("upcoming");
 const searchQuery = ref("");
 
+// This object will trigger child re-fetch when changed
+const refreshKeys = reactive({
+  upcoming: 0,
+  past: 0,
+  cancelled: 0
+});
+
 const refreshEvents = () => {
-  console.log("Refreshing events...");
-  // Add your refresh logic here (e.g., reload from API)
+  if (activeTab.value === "upcoming") refreshKeys.upcoming++;
+  else if (activeTab.value === "past") refreshKeys.past++;
+  else if (activeTab.value === "cancelled") refreshKeys.cancelled++;
 };
 </script>
 

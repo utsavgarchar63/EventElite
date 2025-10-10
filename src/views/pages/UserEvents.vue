@@ -86,10 +86,17 @@ interface EventItem {
 }
 
 
+// Add this in props
 const props = defineProps<{
   eventType: "upcoming" | "past" | "cancelled";
   search: string;
+  refreshKey: number;  // 👈 new prop
 }>();
+
+// Watch for refreshKey changes
+watch(() => props.refreshKey, () => {
+  fetchEvents();
+});
 
 const events = ref<{
   upcomingEvents: EventItem[];
@@ -164,8 +171,12 @@ const getStatusColor = (status: string) => {
   }
 };
 
+
 // Re-fetch events whenever tab changes
 watch(() => props.eventType, fetchEvents);
+watch(() => props.refreshKey, () => {
+  fetchEvents();
+});
 </script>
 
 <style scoped>

@@ -1,0 +1,113 @@
+<template>
+  <div>
+    <!-- Loader -->
+    <div v-if="loading" class="d-flex justify-center my-5">
+      <v-progress-circular indeterminate color="primary" size="48" />
+    </div>
+
+    <!-- No tickets -->
+    <div v-else-if="events.length === 0" class="text-center my-5">
+      No tickets available.
+    </div>
+
+    <!-- Events -->
+    <div v-else>
+      <div v-for="event in events" :key="event.event_id" class="pa-6 border rounded-lg mt-5 mb-10">
+        <!-- Header -->
+        <div class="d-flex justify-space-between align-center mb-5 flex-wrap">
+          <div>
+            <h5 class="mb-1 text-h5 font-weight-medium">{{ event.event_name }}</h5>
+            <p class="text-body-2 mt-2" style="color: grey;">
+              <v-icon small class="me-1">mdi-calendar</v-icon>
+              {{ formatDate(event.details.date) }}
+              <v-icon small class="ms-3 me-1">mdi-map-marker</v-icon>
+              {{ event.details.location }}
+            </p>
+          </div>
+          <div class="d-flex gap-3">
+            <v-btn variant="outlined" color="grey" size="small">Invoice</v-btn>
+            <v-btn variant="outlined" color="grey" size="small">Download All</v-btn>
+          </div>
+        </div>
+
+        <!-- QR Ticket Grid -->
+        <v-row dense class="ticket-grid">
+          <v-col v-for="ticket in event.tickets" :key="ticket.ticket_id" cols="6" sm="4" md="3" lg="2.4">
+            <v-card v-for="qr in ticket.qr_codes" :key="qr.qr_id"
+              class="pa-5 d-flex flex-column align-center mb-6 text-center ticket-card">
+              <v-img :src="`https://api.qrserver.com/v1/create-qr-code/?data=${qr.code}&size=150x150`" width="100"
+                height="100" class="mb-3"></v-img>
+              <p class="font-weight-medium text-subtitle-2 mb-1">#{{ qr.code.slice(0, 6).toUpperCase() }}</p>
+              <p class="text-caption grey--text mb-4">Show at entrance</p>
+              <div class="d-flex justify-center mb-3 gap-2">
+                <v-btn variant="outlined" color="primary" size="small">Download</v-btn>
+                <v-btn variant="outlined" color="primary" size="small">Share</v-btn>
+              </div>
+            </v-card>
+          </v-col>
+        </v-row>
+
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, watch } from "vue";
+import api from "@/plugins/axios";
+
+const props = defineProps<{ ticketType: string }>();
+const events = ref([]);
+const loading = ref(false);
+
+const fetchTickets = async () => {
+  loading.value = true;
+  try {
+    const response = await api.get("/user/tickets");
+    const data = response.data.data;
+
+    if (props.ticketType === "upcoming") events.value = data.upcomingEvents;
+    if (props.ticketType === "past") events.value = data.pastEvents;
+    if (props.ticketType === "cancelled") events.value = data.cancelledEvents;
+    console.log(data.pastEvents)
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(fetchTickets);
+watch(() => props.ticketType, fetchTickets);
+
+const formatDate = (date: string) =>
+  new Date(date).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+</script>
+
+<style scoped>
+.ticket-card {
+  border: 2px dashed #dcdcdc;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  background-color: #fff;
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+.ticket-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.ticket-grid {
+  row-gap: 20px !important;
+  column-gap: 15px !important;
+}
+
+.text-grey {
+  color: #666 !important;
+}
+</style>
