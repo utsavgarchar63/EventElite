@@ -51,13 +51,34 @@
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
 import api from "@/plugins/axios";
 
+interface QRCode {
+  qr_id: string;
+  code: string;
+}
+
+interface Ticket {
+  ticket_id: string;
+  qr_codes: QRCode[];
+}
+
+interface EventDetails {
+  date: string;
+  location: string;
+}
+
+interface Event {
+  event_id: string;
+  event_name: string;
+  details: EventDetails;
+  tickets: Ticket[];
+}
+
 const props = defineProps<{ ticketType: string }>();
-const events = ref([]);
+const events = ref<Event[]>([]);  // ✅ Tell TypeScript that events is an array of Event
 const loading = ref(false);
 
 const fetchTickets = async () => {
