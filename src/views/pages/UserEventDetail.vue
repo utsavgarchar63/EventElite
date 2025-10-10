@@ -415,13 +415,14 @@ const formatDate = (dateStr?: string) => {
 };
 
 const groupedSponsors = computed(() => {
-  const sponsors = event.value?.sponsors || [];
+  const sponsors = (event.value?.sponsors || []) as any[];
   return {
-    premium: sponsors.filter(s => ['Premium', 'Platinum'].includes(s.pivot?.tier)),
-    gold: sponsors.filter(s => s.pivot?.tier === 'Gold'),
-    others: sponsors.filter(s => !['Premium', 'Platinum', 'Gold'].includes(s.pivot?.tier)),
+    premium: sponsors.filter((s: any) => ['Premium', 'Platinum'].includes(s.pivot?.tier)),
+    gold: sponsors.filter((s: any) => s.pivot?.tier === 'Gold'),
+    others: sponsors.filter((s: any) => !['Premium', 'Platinum', 'Gold'].includes(s.pivot?.tier)),
   };
 });
+
 
 const formatTime = (datetime?: string) => {
   if (!datetime) return "N/A";
