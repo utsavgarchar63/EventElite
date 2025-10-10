@@ -118,9 +118,9 @@ const fetchEvents = async () => {
   }
 };
 
-const onImageError = (e: Event) => {
-  const target = e.target as HTMLImageElement | null;
-  if (target) target.src = defaultEventImg;
+const onImageError = (value?: string) => {
+  // `value` is ignored, we just set fallback
+  return defaultEventImg; // or set src manually if needed
 };
 
 
