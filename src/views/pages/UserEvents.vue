@@ -13,7 +13,8 @@
             <v-row no-gutters style="cursor:pointer" @click="goToDetail(event.event_id)">
               <!-- Event Image -->
               <v-col cols="12" sm="3">
-                <v-img :src="event?.image || defaultEventImg" height="130" class="rounded-lg" cover @error="onImageError" />
+                <v-img :src="event?.image || defaultEventImg" height="130" class="rounded-lg" cover
+                  @error="onImageError" />
               </v-col>
 
               <!-- Event Info -->
@@ -37,10 +38,12 @@
 
               <!-- Status Tag -->
               <v-col cols="12" sm="2" class="d-flex align-start justify-end pe-4">
-                <v-chip :color="getStatusColor(props.eventType)" text-color="white" style="font-weight: 600;" label size="small">
+                <v-chip :color="getStatusColor(props.eventType)" text-color="white" style="font-weight: 600;" label
+                  size="small">
                   {{ props.eventType }}
                 </v-chip>
-                <v-icon size="24" color="#717182" class="ms-2" style="cursor:pointer" @click="goToDetail(event.event_id)">
+                <v-icon size="24" color="#717182" class="ms-2" style="cursor:pointer"
+                  @click="goToDetail(event.event_id)">
                   mdi-chevron-right
                 </v-icon>
               </v-col>
@@ -49,7 +52,8 @@
         </v-col>
 
         <!-- No Events Found -->
-        <v-col v-if="filteredEvents.length === 0" cols="12" class="d-flex flex-column align-center justify-center text-center py-16">
+        <v-col v-if="filteredEvents.length === 0" cols="12"
+          class="d-flex flex-column align-center justify-center text-center py-16">
           <v-avatar size="80" color="grey-lighten-4" class="mb-4">
             <v-icon size="40" color="grey-darken-1">mdi-calendar-remove</v-icon>
           </v-avatar>
@@ -72,16 +76,31 @@ import api from "@/plugins/axios";
 
 const router = useRouter();
 
+interface EventItem {
+  event_id: number;
+  event_name: string;
+  event_date: string;
+  venue: string;
+  tickets: number;
+  image?: string;
+}
+
+
 const props = defineProps<{
   eventType: "upcoming" | "past" | "cancelled";
   search: string;
 }>();
 
-const events = ref({
+const events = ref<{
+  upcomingEvents: EventItem[];
+  pastEvents: EventItem[];
+  cancelledEvents: EventItem[];
+}>({
   upcomingEvents: [],
   pastEvents: [],
   cancelledEvents: []
 });
+
 
 const loading = ref(false); // 👈 loading state
 
@@ -99,9 +118,11 @@ const fetchEvents = async () => {
   }
 };
 
-const onImageError = (event: Event) => {
-  (event.target as HTMLImageElement).src = defaultEventImg;
+const onImageError = (e: Event) => {
+  const target = e.target as HTMLImageElement | null;
+  if (target) target.src = defaultEventImg;
 };
+
 
 onMounted(fetchEvents);
 
