@@ -92,6 +92,12 @@ const adminMenu: Menu[] = [
         icon: UserIcon,
         to: ['/admin/vendors', '/admin/vendor'],
         external: false
+    },
+    {
+        title: 'Coordinator',
+        icon: UserIcon,
+        to: ['/admin/coordinator', '/admin/coordinator'],
+        external: false
     }
 ];
 

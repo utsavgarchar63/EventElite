@@ -116,22 +116,23 @@
                 </div>
               </div>
             </div>
+            <v-btn class="mt-4 " color="grey-lighten-4" variant="outlined" prepend-icon="mdi-map-marker-outline"
+          :href="`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.details?.venue_address || '')}`"
+          target="_blank">
+          View in Google Maps
+        </v-btn>
           </v-col>
 
           <v-col cols="12" md="6">
-            <div class="d-flex justify-center align-center rounded-lg"
+            <!-- <div class="d-flex justify-center align-center rounded-lg"
               style="height: 200px; background-color: #f4f5f7;">
               <div class="text-center">
                 <v-icon style="color: grey;" size="36">mdi-map-outline</v-icon>
                 <p class="mt-2 text-subtitle-2 font-weight-bold" style="color: grey;">Interactive map coming soon</p>
               </div>
-            </div>
+            </div> -->
 
-            <v-btn class="mt-4 w-100" color="grey-lighten-4" variant="outlined" prepend-icon="mdi-map-marker-outline"
-              :href="`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.details?.venue_address || '')}`"
-              target="_blank">
-              View in Google Maps
-            </v-btn>
+          
           </v-col>
         </v-row>
 
@@ -190,29 +191,25 @@
                       </div>
 
                       <!-- Social & Icons -->
-                      <div class="d-flex align-center mt-3" style="gap: 12px;">
-                        <!-- LinkedIn -->
+                      <!-- <div class="d-flex align-center mt-3" style="gap: 12px;">
                         <v-btn icon size="small" variant="outlined" style="border-color: #ccc; color: #000;">
                           <v-icon size="18">mdi-linkedin</v-icon>
                         </v-btn>
 
-                        <!-- Twitter -->
                         <v-btn icon size="small" variant="outlined" style="border-color: #ccc; color: #000;">
                           <v-icon size="18">mdi-twitter</v-icon>
                         </v-btn>
 
                         <v-spacer></v-spacer>
 
-                        <!-- Heart -->
                         <v-btn icon size="small" variant="text" style="color: #000;">
                           <v-icon>mdi-heart-outline</v-icon>
                         </v-btn>
 
-                        <!-- Bell -->
                         <v-btn icon size="small" variant="text" style="color: #000;">
                           <v-icon>mdi-bell-outline</v-icon>
                         </v-btn>
-                      </div>
+                      </div> -->
 
                     </v-col>
                   </v-row>
@@ -345,8 +342,8 @@
                     <h4 class="text-h6 font-weight-bold mb-1">
                       {{ sponsor.business_name }}
                     </h4>
-                    <v-btn color="grey-darken-2" variant="outlined" size="small" class="mt-4" prepend-icon="mdi-open-in-new"
-                      :href="sponsor.link" target="_blank" block>
+                    <v-btn color="grey-darken-2" variant="outlined" size="small" class="mt-4"
+                      prepend-icon="mdi-open-in-new" :href="sponsor.link" target="_blank" block>
                       Visit Website
                     </v-btn>
                   </v-card>
@@ -372,8 +369,8 @@
         <v-expand-transition>
           <div v-show="showVendors" class="mt-4">
             <!-- Search bar -->
-            <v-text-field v-model="vendorSearch" variant="outlined" prepend-inner-icon="mdi-magnify"
-              placeholder="Search vendors..." class="mb-5" hide-details></v-text-field>
+            <!-- <v-text-field v-model="vendorSearch" variant="outlined" prepend-inner-icon="mdi-magnify"
+              placeholder="Search vendors..." class="mb-5" hide-details></v-text-field> -->
 
             <v-row>
               <v-col v-for="(vendor, index) in filteredVendors" :key="index" cols="12" md="6" lg="4" class="mb-4">
@@ -521,8 +518,8 @@ const filteredVendors = computed(() => {
 
   const searchTerm = vendorSearch.value.toLowerCase();
   return vendors.filter((v: any) =>
-    (v.contact_name?.toLowerCase().includes(searchTerm) ||
-     v.business_name?.toLowerCase().includes(searchTerm))
+  (v.contact_name?.toLowerCase().includes(searchTerm) ||
+    v.business_name?.toLowerCase().includes(searchTerm))
   );
 });
 
