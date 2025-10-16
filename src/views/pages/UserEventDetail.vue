@@ -117,10 +117,10 @@
               </div>
             </div>
             <v-btn class="mt-4 " color="grey-lighten-4" variant="outlined" prepend-icon="mdi-map-marker-outline"
-          :href="`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.details?.venue_address || '')}`"
-          target="_blank">
-          View in Google Maps
-        </v-btn>
+              :href="`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.details?.venue_address || '')}`"
+              target="_blank">
+              View in Google Maps
+            </v-btn>
           </v-col>
 
           <v-col cols="12" md="6">
@@ -132,7 +132,7 @@
               </div>
             </div> -->
 
-          
+
           </v-col>
         </v-row>
 
@@ -442,15 +442,24 @@
       <p class="text-subtitle-1 mt-3">No event details found.</p>
     </div>
   </v-container>
+
+  <!-- Fixed Book Event Button -->
+  <div class="book-event-bar">
+    <v-btn color="primary" size="large" @click="handleBookEvent">
+      Book Event
+    </v-btn>
+  </div>
+
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import CryptoJS from "crypto-js";
 import api from "@/plugins/axios";
 import defaultEventImg from "@/assets/images/events/banner.webp";
 import picture from "@/assets/images/common/picture.png"
+import { useUserEventStore } from "@/store/userEventStore";
 const route = useRoute();
 const showSpeakers = ref(true);
 const event = ref<any>(null);
@@ -459,6 +468,9 @@ const loading = ref<boolean>(true);
 const bannerImage = ref<string>(defaultEventImg);
 const showVendors = ref(true);
 const vendorSearch = ref("");
+
+const store = useUserEventStore();
+const router = useRouter()
 
 
 
@@ -541,6 +553,26 @@ const onBannerImageError = () => {
   bannerImage.value = defaultEventImg;
 };
 
+const handleBookEvent = () => {
+  if (!event.value) return;
+  console.log(event.value.tickets)
+  store.setSelectedEvent({
+    id: event.value.id,
+    event_type: event.value.event_type,
+    name: event.value.event_name,
+    tickets: event.value.tickets,
+    banner: bannerImage,
+    start_datetime: event.value.details?.start_datetime,
+    end_datetime: event.value.details?.end_datetime,
+    venue: event.value.details?.venue,
+    venue_address: event.value.details?.venue_address,
+  });
+
+  router.push("/user/book-event");
+};
+
+
+
 onMounted(async () => {
   const encryptedId = route.query.id as string;
   if (encryptedId) {
@@ -596,5 +628,12 @@ onMounted(async () => {
 .rotate-180 {
   transform: rotate(180deg);
   transition: transform 0.3s ease;
+}
+
+.book-event-bar {
+  position: fixed;
+  bottom: 20px;
+  right: 40px;
+  z-index: 100;
 }
 </style>

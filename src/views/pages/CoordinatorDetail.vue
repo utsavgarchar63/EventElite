@@ -28,7 +28,7 @@
                          <div v-if="coordinator.events && coordinator.events.length" class="d-flex flex-wrap gap-2">
                               <v-chip v-for="event in coordinator.events" :key="event.id" color="primary"
                                    variant="outlined" size="small">
-                                   {{ event.event_name || `Event #${event.id}` }}
+                                   {{ event.event_name }}
                               </v-chip>
                          </div>
                          <div v-else class="text-grey">No events assigned</div>
