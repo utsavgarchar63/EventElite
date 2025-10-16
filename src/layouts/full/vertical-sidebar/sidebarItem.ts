@@ -1,5 +1,5 @@
 import { computed } from 'vue';
-import { useRoute } from 'vue-router'; // Import route
+import { useRoute } from 'vue-router';
 import {
     LayoutDashboardIcon,
     DeviceAnalyticsIcon,
@@ -25,34 +25,17 @@ export interface Menu {
     external?: boolean;
 }
 
-// Sidebar menus
+// Base menus
 const superAdminMenu: Menu[] = [
     {
         title: 'Overview',
         icon: LayoutDashboardIcon,
         to: '/super-admin/dashboard',
-        external: false
     },
     {
         title: 'Reports',
         icon: DeviceAnalyticsIcon,
         to: '/super-admin/reports',
-        external: false
-    }
-];
-
-const userMenu: Menu[] = [
-    {
-        title: 'My Events',
-        icon: CalendarIcon,
-        to: '/user/events',
-        external: false
-    },
-    {
-        title: 'My Tickets',
-        icon: TicketIcon,
-        to: '/user/tickets',
-        external: false
     }
 ];
 
@@ -61,62 +44,77 @@ const adminMenu: Menu[] = [
         title: 'Overview',
         icon: LayoutDashboardIcon,
         to: '/admin/dashboard',
-        external: false
     },
     {
         title: 'Events',
         icon: CalendarIcon,
         to: '/admin/events',
-        external: false
     },
     {
         title: 'Attendee',
         icon: UserIcon,
         to: ['/admin/attendees', '/admin/attendee'],
-        external: false
     },
     {
         title: 'Speakers',
         icon: UserIcon,
         to: ['/admin/speakers', '/admin/speaker'],
-        external: false
     },
     {
         title: 'Sponsors',
         icon: UserIcon,
         to: ['/admin/sponsors', '/admin/sponsor'],
-        external: false
     },
     {
         title: 'Vendors',
         icon: UserIcon,
         to: ['/admin/vendors', '/admin/vendor'],
-        external: false
     },
     {
         title: 'Coordinator',
         icon: UserIcon,
         to: ['/admin/coordinator', '/admin/coordinator'],
-        external: false
     }
 ];
 
+const userMenu: Menu[] = [
+    {
+        title: 'My Events',
+        icon: CalendarIcon,
+        to: '/user/events',
+    },
+    {
+        title: 'My Tickets',
+        icon: TicketIcon,
+        to: '/user/tickets',
+    }
+];
+
+// ✅ Common Profile menu (for everyone)
+const profileMenu: Menu = {
+    title: 'Profile',
+    icon: UserIcon,
+    to: '/profile',
+};
 
 export function useSidebarMenu() {
     const route = useRoute();
 
     const menus = computed<Menu[]>(() => {
         if (route.path.startsWith('/super-admin')) {
-            return superAdminMenu;
+            return [...superAdminMenu, profileMenu];
         } else if (route.path.startsWith('/admin')) {
-            return adminMenu;
+            return [...adminMenu, profileMenu];
         } else if (route.path.startsWith('/user')) {
-            return userMenu;
+            return [...userMenu, profileMenu];
+        } else if (route.path.startsWith('/profile')) {
+            // If directly on profile, still show profile only
+            return [profileMenu];
         }
         return [];
     });
 
-    // helper to mark active item
+    // Active menu logic
     function isActive(item: Menu) {
         if (!item.to) return false;
         const paths = Array.isArray(item.to) ? item.to : [item.to];
