@@ -8,6 +8,12 @@
 </template>
 
 <script setup lang="ts">
-defineProps({ event: Object });
+import type { EventDetails } from '../types';
+
+
+const props = defineProps<{
+     event: EventDetails;
+}>();
+
 const emit = defineEmits(["done"]);
 </script>
