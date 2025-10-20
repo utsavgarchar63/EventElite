@@ -19,7 +19,10 @@ import { useSnackbarStore } from '@/store/snackbar';
 
 const authStore = useAuthStore();
 const profileDialog = ref(false);
-const activeTab = ref('overview');
+type TabKey = keyof typeof tabComponents;
+
+// Restrict activeTab to valid keys
+const activeTab = ref<TabKey>('overview');
 
 // Menu items
 const menuItems = [
@@ -39,8 +42,9 @@ const tabComponents = {
   payments: PaymentMethodsTab,
   support: SupportCenterTab,
 };
-
-const currentComponent = computed(() => tabComponents[activeTab.value] || OverviewTab);
+const currentComponent = computed(() =>
+  tabComponents[activeTab.value as keyof typeof tabComponents] || OverviewTab
+);
 
 const handleItemClick = (item: any) => {
   if (item.logout) {
