@@ -90,26 +90,18 @@ const userMenu: Menu[] = [
     }
 ];
 
-// ✅ Common Profile menu (for everyone)
-const profileMenu: Menu = {
-    title: 'Profile',
-    icon: UserIcon,
-    to: '/profile',
-};
+
 
 export function useSidebarMenu() {
     const route = useRoute();
 
     const menus = computed<Menu[]>(() => {
         if (route.path.startsWith('/super-admin')) {
-            return [...superAdminMenu, profileMenu];
+            return [...superAdminMenu];
         } else if (route.path.startsWith('/admin')) {
-            return [...adminMenu, profileMenu];
+            return [...adminMenu];
         } else if (route.path.startsWith('/user')) {
-            return [...userMenu, profileMenu];
-        } else if (route.path.startsWith('/profile')) {
-            // If directly on profile, still show profile only
-            return [profileMenu];
+            return [...userMenu];
         }
         return [];
     });
