@@ -32,20 +32,25 @@
 
         <!-- QR Ticket Grid -->
         <v-row dense class="ticket-grid">
-          <v-col v-for="ticket in event.tickets" :key="ticket.ticket_id" cols="6" sm="4" md="3" lg="2.4">
-            <v-card v-for="qr in ticket.qr_codes" :key="qr.qr_id"
-              class="pa-5 d-flex flex-column align-center mb-6 text-center ticket-card">
-              <v-img :src="`https://api.qrserver.com/v1/create-qr-code/?data=${qr.code}&size=150x150`" width="100"
-                height="100" class="mb-3"></v-img>
-              <p class="font-weight-medium text-subtitle-2 mb-1">#{{ qr.code.slice(0, 6).toUpperCase() }}</p>
-              <p class="text-caption grey--text mb-4">Show at entrance</p>
-              <div class="d-flex justify-center mb-3 gap-2">
-                <v-btn variant="outlined" color="primary" size="small">Download</v-btn>
-                <v-btn variant="outlined" color="primary" size="small">Share</v-btn>
-              </div>
-            </v-card>
-          </v-col>
+          <template v-for="ticket in event.tickets">
+            <v-col v-for="qr in ticket.qr_codes" :key="qr.qr_id" cols="12" sm="6" md="4" lg="3">
+              <v-card class="pa-5 d-flex flex-column align-center mb-6 text-center ticket-card">
+                <v-img :src="`https://api.qrserver.com/v1/create-qr-code/?data=${qr.code}&size=150x150`" width="100"
+                  height="100" class="mb-3"></v-img>
+                <p class="font-weight-medium text-subtitle-2 mb-1">
+                  #{{ qr.code.slice(0, 6).toUpperCase() }}
+                </p>
+                <p class="text-caption grey--text mb-4">Show at entrance</p>
+                <div class="d-flex justify-center mb-3 gap-2">
+                  <v-btn variant="outlined" color="primary" size="small">Download</v-btn>
+                  <v-btn variant="outlined" color="primary" size="small">Share</v-btn>
+                </div>
+              </v-card>
+            </v-col>
+          </template>
         </v-row>
+
+
 
       </div>
     </div>
