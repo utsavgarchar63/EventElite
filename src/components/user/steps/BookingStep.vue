@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import type { Attendee, Buyer, EventDetails, Payment } from '../types';
 
-
 defineProps<{
   buyer: Buyer;
   attendees: Attendee[];
   payment: Payment;
   event: EventDetails;
 }>();
+
+// Ticket display title
 const ticketTitle = (ticket: any) => {
   return `${ticket.ticket_name} ${ticket.is_free ? '(Free)' : `(${ticket.price}₹)`}`;
 };
+
+// ✅ Moved here — remove the inline type from template
+const disableIfFull = (ticket: { capacity: number }) => ticket.capacity <= 0;
 </script>
 
 <template>
@@ -40,12 +44,20 @@ const ticketTitle = (ticket: any) => {
         <v-col cols="12" md="6">
           <v-text-field label="Phone" variant="outlined" v-model="att.phone_no" />
         </v-col>
+
+        <!-- ✅ Use the function name instead of inline typing -->
         <v-col cols="12" md="6">
-          <!-- ✅ Fix item-title -->
-          <v-select :items="event.tickets || []" :item-title="ticketTitle" item-value="id"
-            :item-disabled="(ticket: { capacity: number }) => ticket.capacity <= 0" label="Select Ticket"
-            variant="outlined" v-model="att.ticket_id" />
+          <v-select
+            :items="event.tickets || []"
+            :item-title="ticketTitle"
+            item-value="id"
+            :item-disabled="disableIfFull"
+            label="Select Ticket"
+            variant="outlined"
+            v-model="att.ticket_id"
+          />
         </v-col>
+
         <v-col cols="12" md="6">
           <v-text-field label="Quantity" variant="outlined" v-model.number="att.quantity" type="number" min="1" />
         </v-col>
