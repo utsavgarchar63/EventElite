@@ -2,10 +2,13 @@
 import { router } from '@/router';
 import { useEventStore } from '@/store/eventStore';
 import { ref } from 'vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 
 const store = useEventStore();
 const copied = ref(false);
-
+const eventId = route.query.event_id; // from URL
 const goToEventList = () => {
     router.push({ name: "Events" });
 };
@@ -14,14 +17,13 @@ const toUrlSafeBase64 = (str: string) =>
     btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 
 const seeThisEvent = () => {
-    const encoded = toUrlSafeBase64(String(store.formData.basicInfo));
+    const encoded = toUrlSafeBase64(String(eventId));
     router.push({ name: "EventDetail", query: { id: encoded } });
-
 };
 
 // Copy Event URL
 const copyEventUrl = () => {
-    const encoded = toUrlSafeBase64(String(store.formData.basicInfo));
+    const encoded = toUrlSafeBase64(String(eventId));
     const url = `${window.location.origin}/user/events/detail?id=${encoded}`;
     navigator.clipboard.writeText(url).then(() => {
         copied.value = true;

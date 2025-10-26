@@ -593,6 +593,7 @@ onMounted(async () => {
   if (encodedId) {
     try {
       const decodedStr = fromUrlSafeBase64(encodedId);
+      console.log('decodedStr', decodedStr)
       const id = parseInt(decodedStr, 10);
 
       // Fetch event details from API
