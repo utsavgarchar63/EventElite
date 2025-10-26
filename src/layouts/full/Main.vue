@@ -1,31 +1,42 @@
 <script setup lang="ts">
-import { onMounted, ref, shallowRef, watch } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 import { useDisplay } from "vuetify";
+import { useRoute } from 'vue-router'; // ✅ import route
 import { useSidebarMenu } from './vertical-sidebar/sidebarItem';
 import NavGroup from './vertical-sidebar/NavGroup/index.vue';
 import NavItem from './vertical-sidebar/NavItem/index.vue';
 import Logo from './logo/Logo.vue';
-// Icon Imports
-import { Menu2Icon } from 'vue-tabler-icons';
-// dropdown imports
+import NavCollapse from './vertical-sidebar/NavCollapse/NavCollapse.vue';
 import NotificationDD from './vertical-header/NotificationDD.vue';
 import ProfileDD from './vertical-header/ProfileDD.vue';
-import NavCollapse from './vertical-sidebar/NavCollapse/NavCollapse.vue';
 import SettingDD from './vertical-header/SettingDD.vue';
+import { Menu2Icon } from 'vue-tabler-icons';
+import { useSidebarVisibility } from '@/composables/useSidebarVisibility';
+
 const { menus } = useSidebarMenu();
 const { mdAndDown } = useDisplay();
+const route = useRoute(); // get current route
 const sDrawer = ref(true);
+
+const { showSidebar } = useSidebarVisibility();
+const userRole = ref(localStorage.getItem('role'));
+
+
+console.log('showSidebar', showSidebar)
 onMounted(() => {
-    sDrawer.value = !mdAndDown.value; // hide on mobile, show on desktop
+    sDrawer.value = !mdAndDown.value;
 });
+
 watch(mdAndDown, (val) => {
     sDrawer.value = !val;
 });
+
 </script>
+
 
 <template>
     <!------Sidebar-------->
-    <v-navigation-drawer left elevation="0" app :width="270" v-model="sDrawer">
+    <v-navigation-drawer :key="route.path" v-if="showSidebar" left elevation="0" app :width="270" v-model="sDrawer">
         <!---Logo part -->
         <div class="pa-5">
             <Logo />
@@ -74,11 +85,13 @@ watch(mdAndDown, (val) => {
             </div>
 
             <!-- Right side: Settings, Notifications & Profile -->
-            <div class="d-flex align-center">
+            <!-- Only show Profile dropdown if role is 'user' -->
+            <div class="d-flex align-center" v-if="userRole === 'user'">
                 <SettingDD class="hidden-sm-and-down" />
                 <NotificationDD />
                 <ProfileDD />
             </div>
+
         </div>
     </v-app-bar>
 

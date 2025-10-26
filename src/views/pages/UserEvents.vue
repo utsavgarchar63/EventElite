@@ -33,7 +33,7 @@
                 </div>
                 <div class="text-body-2" style="color: #717182;">
                   <v-icon size="18" color="#717182" class="me-1">mdi-ticket</v-icon>
-                  {{ event?.tickets }} tickets purchased
+                  {{ event?.tickets?.length || 0 }} tickets purchased
                 </div>
               </v-col>
 
@@ -93,7 +93,6 @@ const props = defineProps<{
   search: string;
   refreshKey: number;  // 👈 new prop
 }>();
-
 // Watch for refreshKey changes
 watch(() => props.refreshKey, () => {
   fetchEvents();
@@ -143,6 +142,7 @@ const fetchEvents = async () => {
   }
 };
 
+
 const onImageError = (value?: string) => {
   // `value` is ignored, we just set fallback
   return defaultEventImg; // or set src manually if needed
@@ -170,7 +170,7 @@ const filteredEvents = computed(() => {
 const toUrlSafeBase64 = (str: string) =>
   btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 
-  const goToDetail = (id: number) => {
+const goToDetail = (id: number) => {
   // numeric id -> string -> base64 (URL-safe)
   const encoded = toUrlSafeBase64(String(id));
   router.push({ name: "EventDetail", query: { id: encoded } });

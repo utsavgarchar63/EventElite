@@ -15,7 +15,8 @@ const MainRoutes = {
             name: 'EventDetail',
             path: '/user/events/detail',
             component: () => import('@/views/pages/UserEventDetail.vue'),
-            meta: { requiresAuth: true, roles: ['user'] }
+            meta: { requiresAuth: false, roles: ['user'] }
+            // meta: { requiresAuth: false, roles: [] }
         },
         {
             path: '/profile',
@@ -33,7 +34,8 @@ const MainRoutes = {
             name: 'BookEvent',
             path: '/user/book-event',
             component: () => import('@/views/pages/BookEvent.vue'),
-            meta: { requiresAuth: true, roles: ['user'] }
+            // meta: { requiresAuth: true, roles: ['user'] }
+            meta: { requiresAuth: false, roles: ['user'] }
         },
         {
             name: 'AdminDashboard',
