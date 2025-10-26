@@ -86,7 +86,7 @@ watch(mdAndDown, (val) => {
 
             <!-- Right side: Settings, Notifications & Profile -->
             <!-- Only show Profile dropdown if role is 'user' -->
-            <div class="d-flex align-center" v-if="userRole === 'user'">
+            <div class="d-flex align-center" v-if="!!userRole">
                 <SettingDD class="hidden-sm-and-down" />
                 <NotificationDD />
                 <ProfileDD />

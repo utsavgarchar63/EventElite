@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, type Ref } from 'vue';
+import { ref, onMounted, type Ref, toRefs } from 'vue';
 import api from '@/plugins/axios';
 import { useSnackbarStore } from '@/store/snackbar';
 
@@ -11,18 +11,15 @@ const snackbar = useSnackbarStore();
 // --------------------
 // Notification States
 // --------------------
-interface NotificationSettings {
-  email: Ref<boolean>;
-  sms: Ref<boolean>;
-  push: Ref<boolean>;
-}
 
-const notifications: NotificationSettings = {
+
+const notifications = {
   email: ref(true),
   sms: ref(false),
   push: ref(true),
 };
 
+const { email, sms, push } = toRefs(notifications);
 // --------------------
 // Password Fields
 // --------------------
@@ -33,8 +30,9 @@ const confirmPassword = ref('');
 // --------------------
 // Loading States
 // --------------------
-const loading = ref(false);
-const savingSettings = ref(false);
+const loading = ref(false); // For fetching user settings
+const savingNotifications = ref(false); // For notifications
+const savingPassword = ref(false);
 
 // --------------------
 // User ID from localStorage
@@ -58,13 +56,13 @@ const fetchSettings = async () => {
   loading.value = true;
   try {
     // Fetch from API (mocked here)
-    // const response = await api.get(`/users/${userId}/settings`);
-    // const settings = response.data;
-
+    const response = await api.get(`/user/settings`);
+    const settings = response.data;
     // Example: default settings
-    notifications.email.value = true;
-    notifications.sms.value = false;
-    notifications.push.value = true;
+    notifications.email.value = settings.data.email_notifications ?? false;
+    notifications.sms.value = settings.data.sms_notifications ?? false;
+    notifications.push.value = settings.data.push_notifications ?? false;
+
   } catch (error) {
     console.error('Failed to fetch settings:', error);
     snackbar.show('Failed to load settings', 'error');
@@ -76,15 +74,17 @@ const fetchSettings = async () => {
 // --------------------
 // Toggle function
 // --------------------
-const toggleNotification = (key: keyof NotificationSettings) => {
-  notifications[key].value = !notifications[key].value;
+const toggleNotification = (key: 'email' | 'sms' | 'push') => {
+  if (key === 'email') email.value = !email.value;
+  if (key === 'sms') sms.value = !sms.value;
+  if (key === 'push') push.value = !push.value;
 };
-
 // --------------------
 // Save notification settings
 // --------------------
+// Save notification settings
 const saveSettings = async () => {
-  savingSettings.value = true;
+  savingNotifications.value = true;
   try {
     const payload = {
       email_notifications: notifications.email.value,
@@ -92,19 +92,17 @@ const saveSettings = async () => {
       push_notifications: notifications.push.value,
     };
 
-    await api.put(`/users/settings`, payload);
+    await api.put(`/user/settings`, payload);
     snackbar.show('Settings updated successfully', 'success');
   } catch (error) {
     console.error('Failed to save settings:', error);
     snackbar.show('Failed to save settings', 'error');
   } finally {
-    savingSettings.value = false;
+    savingNotifications.value = false;
   }
 };
 
-// --------------------
 // Save password
-// --------------------
 const savePassword = async () => {
   if (newPassword.value !== confirmPassword.value) {
     snackbar.show('New password and confirm password do not match', 'error');
@@ -116,7 +114,7 @@ const savePassword = async () => {
     return;
   }
 
-  savingSettings.value = true;
+  savingPassword.value = true;
 
   try {
     await api.put(`/users/${userId}`, { password: newPassword.value });
@@ -130,7 +128,7 @@ const savePassword = async () => {
     console.error('Failed to update password:', error);
     snackbar.show('Failed to update password', 'error');
   } finally {
-    savingSettings.value = false;
+    savingPassword.value = false;
   }
 };
 
@@ -149,48 +147,36 @@ onMounted(() => {
     <v-card outlined class="pa-4 flex-1 min-w-[300px] rounded-lg border border-gray-300">
       <h3 class="mb-4 text-lg font-semibold">Notification Preferences</h3>
 
-      <div
-        class="custom-toggle-item"
-        @click="toggleNotification('email')"
-      >
+      <div class="custom-toggle-item" @click="toggleNotification('email')">
         <span>Email Notifications</span>
         <div class="custom-toggle-switch">
-          <div class="toggle-track" :class="{ active: notifications.email }">
-            <div class="toggle-knob" :class="{ active: notifications.email }"></div>
+          <div class="toggle-track" :class="{ active: email }">
+            <div class="toggle-knob" :class="{ active: email }"></div>
           </div>
         </div>
       </div>
 
-      <div
-        class="custom-toggle-item"
-        @click="toggleNotification('sms')"
-      >
+      <div class="custom-toggle-item" @click="toggleNotification('sms')">
         <span>SMS Notifications</span>
         <div class="custom-toggle-switch">
-          <div class="toggle-track" :class="{ active: notifications.sms }">
-            <div class="toggle-knob" :class="{ active: notifications.sms }"></div>
+          <div class="toggle-track" :class="{ active: sms }">
+            <div class="toggle-knob" :class="{ active: sms }"></div>
           </div>
         </div>
       </div>
 
-      <div
-        class="custom-toggle-item"
-        @click="toggleNotification('push')"
-      >
+      <div class="custom-toggle-item" @click="toggleNotification('push')">
         <span>Push Notifications</span>
         <div class="custom-toggle-switch">
-          <div class="toggle-track" :class="{ active: notifications.push }">
-            <div class="toggle-knob" :class="{ active: notifications.push }"></div>
+          <div class="toggle-track" :class="{ active: push }">
+            <div class="toggle-knob" :class="{ active: push }"></div>
           </div>
         </div>
       </div>
 
-      <v-btn
-        color="primary"
-        class="mt-4"
-        :loading="savingSettings"
-        @click="saveSettings"
-      >
+
+
+      <v-btn color="primary" class="mt-4" :loading="savingNotifications" @click="saveSettings">
         Save Settings
       </v-btn>
     </v-card>
@@ -199,37 +185,14 @@ onMounted(() => {
     <v-card outlined class="pa-4 flex-1 min-w-[300px] rounded-lg border border-gray-300">
       <h3 class="mb-4 text-lg font-semibold">Change Password</h3>
 
-      <v-text-field
-        v-model="currentPassword"
-        variant="outlined"
-        label="Current Password"
-        type="password"
-        class="mb-4"
-        hide-details="auto"
-      />
-      <v-text-field
-        v-model="newPassword"
-        variant="outlined"
-        label="New Password"
-        type="password"
-        class="mb-4"
-        hide-details="auto"
-      />
-      <v-text-field
-        v-model="confirmPassword"
-        variant="outlined"
-        label="Confirm New Password"
-        type="password"
-        class="mb-4"
-        hide-details="auto"
-      />
+      <v-text-field v-model="currentPassword" variant="outlined" label="Current Password" type="password" class="mb-4"
+        hide-details="auto" />
+      <v-text-field v-model="newPassword" variant="outlined" label="New Password" type="password" class="mb-4"
+        hide-details="auto" />
+      <v-text-field v-model="confirmPassword" variant="outlined" label="Confirm New Password" type="password"
+        class="mb-4" hide-details="auto" />
 
-      <v-btn
-        color="primary"
-        class="mt-4"
-        :loading="savingSettings"
-        @click="savePassword"
-      >
+      <v-btn color="primary" class="mt-4" :loading="savingPassword" @click="savePassword">
         Save Password
       </v-btn>
     </v-card>

@@ -196,12 +196,19 @@ const handleSubmit = async () => {
             snackbar.show('Payment successful!', "success");
 
             // Navigate to success page
-            router.push('/admin/event/success');
+           
+            router.push({
+                name: "EventSuccess", query: {
+                    event_id: response.data.data.event_id
+                }
+            });
+
+
         } else {
             console.error('Payment failed:', response.data.message);
         }
     } catch (error) {
-        console.error('Payment API error:', err);
+        console.error('Payment API error:', error);
         if (error.response?.data?.message) {
             snackbar.show(error.response.data.message, "error");
         } else {

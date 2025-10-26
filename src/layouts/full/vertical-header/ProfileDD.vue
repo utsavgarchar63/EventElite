@@ -25,7 +25,7 @@ const tabComponents = {
   overview: OverviewTab,
   edit: EditProfileTab,
   account: AccountSettingsTab,
-  payments: PaymentMethodsTab,
+  // payments: PaymentMethodsTab,
   support: SupportCenterTab,
 };
 
@@ -37,7 +37,7 @@ const allMenuItems = [
   { tab: 'overview', title: 'Overview', icon: UserIcon },
   { tab: 'edit', title: 'Edit Profile', icon: EditIcon },
   { tab: 'account', title: 'Account Settings', icon: SettingsIcon },
-  { tab: 'payments', title: 'Payment Methods', icon: CreditCardIcon },
+  // { tab: 'payments', title: 'Payment Methods', icon: CreditCardIcon },
   { tab: 'support', title: 'Support Center', icon: HelpCircleIcon },
   { tab: 'logout', title: 'Logout', icon: LogoutIcon, logout: true },
 ];
