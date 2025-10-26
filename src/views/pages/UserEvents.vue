@@ -82,7 +82,7 @@ interface EventItem {
   event_name: string;
   event_date: string;
   venue: string;
-  tickets: number;
+  tickets: any[]; // ✅ tickets is now an array
   image?: string;
 }
 
