@@ -569,27 +569,36 @@ const handleBookEvent = () => {
   });
 
   router.push("/user/book-event");
+};  
+
+
+
+const fromUrlSafeBase64 = (urlSafe: string) => {
+  if (!urlSafe) return "";
+  // Convert URL-safe -> standard Base64
+  const base64 = urlSafe.replace(/-/g, "+").replace(/_/g, "/");
+  // Pad with '=' if needed
+  const padLength = 4 - (base64.length % 4);
+  const padded = base64 + (padLength < 4 ? "=".repeat(padLength) : "");
+  try {
+    return atob(padded);
+  } catch (e) {
+    console.error("Invalid base64:", e);
+    return "";
+  }
 };
 
-
-
 onMounted(async () => {
-  const encryptedId = route.query.id as string;
-  if (encryptedId) {
+  const encodedId = route.query.id as string;
+  if (encodedId) {
     try {
-      const bytes = CryptoJS.AES.decrypt(
-        encryptedId,
-        import.meta.env.VITE_SECRET_KEY
-      );
-      const id = parseInt(bytes.toString(CryptoJS.enc.Utf8));
+      const decodedStr = fromUrlSafeBase64(encodedId);
+      const id = parseInt(decodedStr, 10);
 
       // Fetch event details from API
       const res = await api.get(`/event-detail/${id}`);
-
       if (res.data?.status && res.data?.data) {
         event.value = res.data.data;
-        console.log(res.data.data, "res.data.data");
-        // Use sponsor logo if available, otherwise default banner
         if (event.value.sponsors?.length) {
           bannerImage.value = `https://eventelite-eanm.onrender.com/storage/${event.value.sponsors[0].logo}`;
         }
@@ -606,6 +615,40 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+// onMounted(async () => {
+//   const encryptedId = route.query.id as string;
+//   if (encryptedId) {
+//     try {
+//       const bytes = CryptoJS.AES.decrypt(
+//         encryptedId,
+//         import.meta.env.VITE_SECRET_KEY
+//       );
+//       const id = parseInt(bytes.toString(CryptoJS.enc.Utf8));
+
+//       // Fetch event details from API
+//       const res = await api.get(`/event-detail/${id}`);
+
+//       if (res.data?.status && res.data?.data) {
+//         event.value = res.data.data;
+//         console.log(res.data.data, "res.data.data");
+//         // Use sponsor logo if available, otherwise default banner
+//         if (event.value.sponsors?.length) {
+//           bannerImage.value = `https://eventelite-eanm.onrender.com/storage/${event.value.sponsors[0].logo}`;
+//         }
+//       } else {
+//         event.value = null;
+//       }
+//     } catch (error) {
+//       console.error("Error fetching event details:", error);
+//       event.value = null;
+//     } finally {
+//       loading.value = false;
+//     }
+//   } else {
+//     loading.value = false;
+//   }
+// });
 
 
 

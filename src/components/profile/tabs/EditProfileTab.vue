@@ -33,8 +33,6 @@ const loadUserFromLocalStorage = () => {
     loading.value = false;
   }
 };
-
-// Save profile updates via API
 const saveProfile = async () => {
   if (!userId.value) {
     snackbar.show('User ID not found. Please login again.', 'error');
@@ -42,13 +40,16 @@ const saveProfile = async () => {
   }
 
   saving.value = true;
+
   try {
     const token = localStorage.getItem('token');
     if (!token) {
       snackbar.show('No token found. Please login again.', 'error');
+      saving.value = false;
       return;
     }
 
+    // API call to update all fields
     const response = await api.put(
       `/users/${userId.value}`,
       {
@@ -56,20 +57,18 @@ const saveProfile = async () => {
         email: email.value,
         phone_no: phone.value,
       },
-
     );
 
     const responseData = response.data;
 
     if (response.status === 200 || responseData.status) {
-      // Update local data
+      // update local storage
       const updatedUser = {
         ...JSON.parse(localStorage.getItem('user') || '{}'),
         name: name.value,
         email: email.value,
         phone_no: phone.value,
       };
-
       localStorage.setItem('user', JSON.stringify(updatedUser));
       authStore.setUser(updatedUser);
 
@@ -85,12 +84,12 @@ const saveProfile = async () => {
   }
 };
 
+
 onMounted(() => {
   loading.value = true;
   loadUserFromLocalStorage();
 });
 </script>
-
 <template>
   <div>
     <h3 class="mb-4 font-semibold text-lg">Edit Profile</h3>
@@ -98,11 +97,22 @@ onMounted(() => {
     <v-skeleton-loader v-if="loading" type="article" />
 
     <div v-else>
-      <v-text-field v-model="name" label="Full Name" hide-details="auto" variant="outlined" class="mb-4" />
-      <v-text-field v-model="email" label="Email" hide-details="auto" variant="outlined" class="mb-4" />
-      <v-text-field v-model="phone" label="Phone" hide-details="auto" variant="outlined" class="mb-4" />
+      <div class="mb-4">
+        <label class="block mb-1 font-medium text-gray-700" style="font-size: 14px;">Full Name</label>
+        <v-text-field v-model="name" hide-details="auto" variant="outlined" density="compact" />
+      </div>
 
-      <v-btn color="primary" block :loading="saving" @click="saveProfile">
+      <div class="mb-4">
+        <label class="block mb-1 font-medium text-gray-700" style="font-size: 14px;">Email</label>
+        <v-text-field v-model="email" hide-details="auto" variant="outlined" density="compact" />
+      </div>
+
+      <div class="mb-4">
+        <label class="block mb-1 font-medium text-gray-700" style="font-size: 14px;">Phone</label>
+        <v-text-field v-model="phone" hide-details="auto" variant="outlined" density="compact" />
+      </div>
+
+      <v-btn block :loading="saving" color="primary" class="text-white" @click="saveProfile">
         Save Changes
       </v-btn>
     </div>

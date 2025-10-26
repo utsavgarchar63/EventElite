@@ -23,9 +23,9 @@
                   {{ event?.event_name }}
                 </div>
                 <div class="text-body-2 mb-1" style="color: #717182;">
-  <v-icon size="18" color="#717182" class="me-1">mdi-calendar</v-icon>
-  {{ formatDate(event?.event_date) }}
-</div>
+                  <v-icon size="18" color="#717182" class="me-1">mdi-calendar</v-icon>
+                  {{ formatDate(event?.event_date) }}
+                </div>
 
                 <div class="text-body-2 mb-1" style="color: #717182;">
                   <v-icon size="18" color="#717182" class="me-1">mdi-map-marker</v-icon>
@@ -167,14 +167,21 @@ const filteredEvents = computed(() => {
       e.venue.toLowerCase().includes(props.search.toLowerCase())
   );
 });
+const toUrlSafeBase64 = (str: string) =>
+  btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 
-const goToDetail = (id: number) => {
-  const encryptedId = CryptoJS.AES.encrypt(
-    id.toString(),
-    import.meta.env.VITE_SECRET_KEY
-  ).toString();
-  router.push({ name: "EventDetail", query: { id: encryptedId } });
+  const goToDetail = (id: number) => {
+  // numeric id -> string -> base64 (URL-safe)
+  const encoded = toUrlSafeBase64(String(id));
+  router.push({ name: "EventDetail", query: { id: encoded } });
 };
+// const goToDetail = (id: number) => {
+//   const encryptedId = CryptoJS.AES.encrypt(
+//     id.toString(),
+//     import.meta.env.VITE_SECRET_KEY
+//   ).toString();
+//   router.push({ name: "EventDetail", query: { id: encryptedId } });
+// };
 
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {

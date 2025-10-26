@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { UserIcon, EditIcon, SettingsIcon, CreditCardIcon, HelpCircleIcon, LogoutIcon } from 'vue-tabler-icons';
+import {
+  UserIcon,
+  EditIcon,
+  SettingsIcon,
+  CreditCardIcon,
+  HelpCircleIcon,
+  LogoutIcon,
+} from 'vue-tabler-icons';
 import { useAuthStore } from '@/store/authStore';
 import NavItem from '../vertical-sidebar/NavItem/index.vue';
 import OverviewTab from '@/components/profile/tabs/OverviewTab.vue';
@@ -10,22 +17,23 @@ import PaymentMethodsTab from '@/components/profile/tabs/PaymentMethodsTab.vue';
 import SupportCenterTab from '@/components/profile/tabs/SupportCenterTab.vue';
 import { useSnackbarStore } from '@/store/snackbar';
 
-// Import tab components
-// import OverviewTab from './tabs/OverviewTab.vue';
-// import EditProfileTab from './tabs/EditProfileTab.vue';
-// import AccountSettingsTab from './tabs/AccountSettingsTab.vue';
-// import PaymentMethodsTab from './tabs/PaymentMethodsTab.vue';
-// import SupportCenterTab from './tabs/SupportCenterTab.vue';
-
 const authStore = useAuthStore();
 const profileDialog = ref(false);
-type TabKey = keyof typeof tabComponents;
 
-// Restrict activeTab to valid keys
-const activeTab = ref<TabKey>('overview');
+// Tab components
+const tabComponents = {
+  overview: OverviewTab,
+  edit: EditProfileTab,
+  account: AccountSettingsTab,
+  payments: PaymentMethodsTab,
+  support: SupportCenterTab,
+};
 
-// Menu items
-const menuItems = [
+// Get role from localStorage
+const userRole = localStorage.getItem('role');
+
+// All menu items
+const allMenuItems = [
   { tab: 'overview', title: 'Overview', icon: UserIcon },
   { tab: 'edit', title: 'Edit Profile', icon: EditIcon },
   { tab: 'account', title: 'Account Settings', icon: SettingsIcon },
@@ -34,16 +42,19 @@ const menuItems = [
   { tab: 'logout', title: 'Logout', icon: LogoutIcon, logout: true },
 ];
 
-// Tab components map
-const tabComponents = {
-  overview: OverviewTab,
-  edit: EditProfileTab,
-  account: AccountSettingsTab,
-  payments: PaymentMethodsTab,
-  support: SupportCenterTab,
-};
+// Filtered menu items based on role
+const menuItems =
+  userRole === 'user'
+    ? allMenuItems
+    : allMenuItems.filter((item) => item.tab !== 'overview' || item.logout);
+
+// ✅ Set active tab dynamically based on role
+const activeTab = ref(
+  userRole === 'user' ? 'overview' : 'edit' // if not user, start from edit tab
+);
+
 const currentComponent = computed(() =>
-  tabComponents[activeTab.value as keyof typeof tabComponents] || OverviewTab
+  tabComponents[activeTab.value as keyof typeof tabComponents] || EditProfileTab
 );
 
 const handleItemClick = (item: any) => {
@@ -55,6 +66,7 @@ const handleItemClick = (item: any) => {
   }
 };
 </script>
+
 
 <template>
   <!-- Profile Button -->
@@ -69,29 +81,29 @@ const handleItemClick = (item: any) => {
   </v-menu>
 
   <!-- Profile Dialog -->
-  <v-dialog v-model="profileDialog" max-width="800">
-    <v-card class="rounded-xl overflow-hidden" height="80vh">
-      <v-row no-gutters class="h-full">
+  <v-dialog v-model="profileDialog" max-width="700" height="80vh">
+    <v-card class="rounded-xl overflow-hidden" style="height: 100%;">
+      <div style="display: flex; height: 100%;">
         <!-- Sidebar -->
-        <v-col cols="4" class="sidebar pa-0">
+        <div class="sidebar" style="width: 30%; height: 100%; overflow-y: auto;">
           <div class="sidebar-header pa-4">
             <h3 class="text-lg font-semibold mb-2">Profile & Settings</h3>
           </div>
           <v-divider></v-divider>
-
           <v-list nav dense>
             <NavItem v-for="item in menuItems" :key="item.tab" :item="item"
               :class="{ 'active-item': activeTab === item.tab }" @click="handleItemClick(item)" />
           </v-list>
-        </v-col>
+        </div>
 
         <!-- Main Content -->
-        <v-col cols="8" class="pa-6 overflow-auto">
+        <div class="scroll-hidden" style="width: 70%; height: 100%; padding: 24px;">
           <component :is="currentComponent" />
-        </v-col>
-      </v-row>
+        </div>
+      </div>
     </v-card>
   </v-dialog>
+
   <v-snackbar v-model="useSnackbarStore().snackbar" :color="useSnackbarStore().color" timeout="4000"
     location="top right" transition="slide-x-reverse-transition" class="custom-snackbar">
     <div class="snackbar-content">
@@ -112,12 +124,23 @@ const handleItemClick = (item: any) => {
 <style scoped>
 .sidebar {
   background-color: #f9fafb;
-  height: 100%;
   border-right: 1px solid #e5e7eb;
+  scroll-behavior: smooth;
+
 }
 
-.sidebar-header {
-  background-color: #ffffff;
+.scroll-hidden {
+  overflow-y: scroll;
+  /* enable scrolling */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.scroll-hidden::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari, Opera */
 }
 
 .active-item {
@@ -125,5 +148,9 @@ const handleItemClick = (item: any) => {
   color: white;
   font-weight: 500;
   border-left: 3px solid #3b82f6;
+}
+
+.sidebar-header {
+  background-color: #ffffff;
 }
 </style>

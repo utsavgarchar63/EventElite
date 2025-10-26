@@ -39,7 +39,7 @@ function getDynamicPath(to) {
         :class="{ 'v-list-item--active': isActive(item.to) }">
         <!-- Icon -->
         <template v-slot:prepend>
-            <Icon :item="item.icon" :level="level" />
+            <Icon :item="item.icon" :level="level" class="me-1" />
         </template>
 
         <!-- Title -->
