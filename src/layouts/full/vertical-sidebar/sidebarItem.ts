@@ -1,3 +1,4 @@
+import { IconCreditCard } from '@tabler/icons-vue';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import {
@@ -43,11 +44,11 @@ const superAdminMenu: Menu[] = [
         icon: HeartHandshakeIcon,
         to: '/super-admin/supports',
     },
-    // {
-    //     title: 'Subscriptions',
-    //     icon: IconCreditCard,
-    //     to: '/super-admin/dashboard',
-    // },
+    {
+        title: 'Subscriptions',
+        icon: IconCreditCard,
+        to: '/super-admin/subscriptions',
+    },
 ];
 
 const adminMenu: Menu[] = [

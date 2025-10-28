@@ -68,12 +68,18 @@ const MainRoutes = {
             meta: { requiresAuth: true, roles: ['admin'] }
         },
         {
+            path: '/super-admin/subscriptions',
+            name: 'Attendees', // make name unique to avoid conflict
+            component: () => import('@/views/pages/Subscriptions.vue'),
+            meta: { requiresAuth: true, roles: ['super_admin'] }
+        },
+        {
             path: '/admin/event/success',
             name: 'EventSuccess', // make name unique to avoid conflict
             component: () => import('@/views/pages/EventSuccess.vue'),
             meta: { requiresAuth: true, roles: ['admin'] }
         },
-          {
+        {
             path: '/super-admin/supports',
             name: 'Supports', // make name unique to avoid conflict
             component: () => import('@/views/pages/Supports.vue'),
