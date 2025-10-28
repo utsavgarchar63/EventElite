@@ -9,13 +9,13 @@ const MainRoutes = {
             name: 'UserDashboard',
             path: '/user/events',
             component: () => import('@/views/dashboard/EventsDashboard.vue'),
-            meta: { requiresAuth: true, roles: ['user',"super_admin","admin"] }
+            meta: { requiresAuth: true, roles: ['user', "super_admin", "admin"] }
         },
         {
             name: 'EventDetail',
             path: '/user/events/detail',
             component: () => import('@/views/pages/UserEventDetail.vue'),
-            meta: { requiresAuth: false, roles: ['user',"super_admin","admin"] }
+            meta: { requiresAuth: false, roles: ['user', "super_admin", "admin"] }
             // meta: { requiresAuth: false, roles: [] }
         },
         {
@@ -59,7 +59,7 @@ const MainRoutes = {
             path: '/admin/events/create',
             name: 'Add Events', // make name unique to avoid conflict
             component: () => import('@/views/pages/CreateEvents.vue'),
-            meta: { requiresAuth: true, roles: ['admin'] }
+            meta: { requiresAuth: true, roles: ['admin', 'super_admin'] }
         },
         {
             path: '/admin/attendees',

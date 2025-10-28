@@ -445,7 +445,7 @@
 
   <!-- Fixed Book Event Button -->
   <div class="book-event-bar">
-    <v-btn color="primary" size="large" @click="handleBookEvent">
+    <v-btn color="primary" v-if="!isLogin" size="large" @click="handleBookEvent">
       Book Event
     </v-btn>
   </div>
@@ -504,7 +504,7 @@ const formatDate = (dateStr?: string) => {
     year: "numeric",
   });
 };
-
+const isLogin = localStorage.getItem("token")
 const groupedSponsors = computed(() => {
   const sponsors = (event.value?.sponsors || []) as any[];
   return {
@@ -569,7 +569,7 @@ const handleBookEvent = () => {
   });
 
   router.push("/user/book-event");
-};  
+};
 
 
 

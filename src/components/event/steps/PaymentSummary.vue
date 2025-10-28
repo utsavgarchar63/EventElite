@@ -174,48 +174,57 @@ const handleSubmit = async () => {
         // pick either saved card or new card
         const paymentMethod = showNewCard.value ? 'credit_card' : 'saved_card';
 
-        // Example: You’ll need to dynamically set these values
         const payload = {
-            event_id: store.formData.basicInfo.id || store.formData.basicInfo.event_id,   // from store
-            amount: totalAmount.value,               // total amount
-            payment_method: paymentMethod,           // credit_card / saved_card / etc.
-            payment_status: 'completed',             // or 'pending'
-            transaction_id: `TXN${Date.now()}`       // generate or get from gateway
+            event_id: store.formData.basicInfo.id || store.formData.basicInfo.event_id,
+            amount: totalAmount.value,
+            payment_method: paymentMethod,
+            payment_status: 'completed',
+            transaction_id: `TXN${Date.now()}`
         };
 
-        // Make API call
-        const response = await api.post(
-            '/events/payment',
-            payload,
-        );
+        const response = await api.post('/events/payment', payload);
 
         if (response.data.status) {
             console.log('Payment recorded:', response.data.data);
 
-            // Optionally show snackbar
             snackbar.show('Payment successful!', "success");
 
-            // Navigate to success page
-           
             router.push({
-                name: "EventSuccess", query: {
-                    event_id: response.data.data.event_id
-                }
+                name: "EventSuccess",
+                query: { event_id: response.data.data.event_id }
             });
-
-
         } else {
-            console.error('Payment failed:', response.data.message);
+            // handle server-side error (status = false)
+            if (response.data.errors) {
+                const firstErrorKey = Object.keys(response.data.errors)[0];
+                const firstErrorMsg = response.data.errors[firstErrorKey][0];
+                snackbar.show(firstErrorMsg, "error");
+            } else if (response.data.message) {
+                snackbar.show(response.data.message, "error");
+            } else {
+                snackbar.show("Payment failed. Please check your details.", "error");
+            }
         }
     } catch (error) {
         console.error('Payment API error:', error);
-        if (error.response?.data?.message) {
+
+        // If server sends validation-style errors
+        if (error.response?.data?.errors) {
+            const errorObj = error.response.data.errors;
+            const firstKey = Object.keys(errorObj)[0];
+            const firstMessage = errorObj[firstKey][0];
+            snackbar.show(firstMessage, "error");
+        } 
+        // If message present in response
+        else if (error.response?.data?.message) {
             snackbar.show(error.response.data.message, "error");
-        } else {
+        } 
+        else {
             snackbar.show("Something went wrong. Please try again.", "error");
         }
     }
 };
+
 
 // 🔹 Cancel
 const handleCancel = () => {

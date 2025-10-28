@@ -63,7 +63,10 @@ watch(mdAndDown, (val) => {
 
     </v-navigation-drawer>
     <!------Header-------->
-    <v-app-bar elevation="0" height="70" class="top-header px-4">
+    <div v-if="!userRole" class=" ma-5">
+       <a href="/"> <Logo /></a>
+    </div>
+    <v-app-bar v-if="!!userRole" elevation="0" height="70" class="top-header px-4">
         <div class="d-flex align-center justify-space-between w-100 flex-wrap">
 
             <!-- Left side: Menu Button & Logo (Small screens) -->
@@ -80,8 +83,8 @@ watch(mdAndDown, (val) => {
                 </div>
 
                 <!-- ✅ Search Bar (hidden on xs, smaller version on md) -->
-                <v-text-field placeholder="Search..." variant="outlined" hide-details density="compact"
-                    class="search-input hidden-sm-and-down ms-4" append-inner-icon="mdi-magnify" />
+                <v-text-field v-if="!!userRole" placeholder="Search..." variant="outlined" hide-details
+                    density="compact" class="search-input hidden-sm-and-down ms-4" append-inner-icon="mdi-magnify" />
             </div>
 
             <!-- Right side: Settings, Notifications & Profile -->

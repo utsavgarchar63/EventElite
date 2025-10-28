@@ -8,8 +8,7 @@
                </v-col>
 
                <!-- Create Event Button -->
-               <v-col cols="12" sm="6" md="3" class="d-flex justify-center justify-md-end mt-4 mt-md-0"
-                    v-if="role !== 'super_admin'">
+               <v-col cols="12" sm="6" md="3" class="d-flex justify-center justify-md-end mt-4 mt-md-0">
                     <v-btn color="primary" class="h-fit" size="large" prepend-icon="mdi-plus" @click="goToAddEvent">
                          Create Event
                     </v-btn>

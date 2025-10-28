@@ -14,7 +14,7 @@
                <v-col cols="12" lg="5" style="margin-top: 20px;">
                     <v-img :src='onGoingEventImg' cover></v-img>
                </v-col>
-               <v-col cols="12" lg="7" style="margin-top: 20px;" v-for="event in onGoingEvents" :key="event.id">
+               <v-col cols="12" lg="7" style="margin-top: 20px;">
                     <v-card class="py-5 px-1" style="border-radius: 8px !important;">
                          <v-card-title class="text-h4 font-weight-bold">
                               On Going Event List
@@ -25,7 +25,6 @@
                               <template #item.start_date="{ item }">
                                    {{ formatDate(item.start_date) }}
                               </template>
-
                          </v-data-table>
                     </v-card>
                </v-col>

@@ -124,7 +124,10 @@ const fetchSponsors = async () => {
   try {
     const userString = localStorage.getItem('user');
     const user = userString ? JSON.parse(userString) : null;
-    const response = await api.get(`/sponsors/list/${user.organization_id}`, {
+    const orgId = localStorage.getItem('organization_id');
+    const role = localStorage.getItem('role');
+
+    const response = await api.get(`/sponsors/list/${role === "super_admin" ? orgId : user.organization_id}`, {
       params: {
         page: page.value,
         search: search.value || '',

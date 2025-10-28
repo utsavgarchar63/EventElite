@@ -90,7 +90,6 @@
     </div>
   </v-container>
 </template>
-
 <script setup lang="ts">
 import { ref } from "vue";
 import { useUserEventStore } from "@/store/userEventStore";
@@ -101,9 +100,13 @@ import BookingStep from "@/components/user/steps/BookingStep.vue";
 import SummaryStep from "@/components/user/steps/SummaryStep.vue";
 import SuccessStep from "@/components/user/steps/SuccessStep.vue";
 import type { Attendee, Buyer, Payment } from "@/components/user/types";
+import { useSnackbarStore } from "@/store/snackbar"; // ✅ Snackbar store
+import type { AxiosError } from "axios";
 
 const router = useRouter();
 const store = useUserEventStore();
+const snackbar = useSnackbarStore();
+
 const event = store.selectedEvent;
 const bannerImage = ref(event?.banner || defaultEventImg);
 
@@ -116,16 +119,69 @@ const steps = [
 
 const buyer = ref<Buyer>({ name: "", email: "", phone: "" });
 const attendees = ref<Attendee[]>([
-  { name: "", email: "", phone_no: "", ticket_id: null, quantity: 1 }
+  { name: "", email: "", phone_no: "", ticket_id: null, quantity: 1 },
 ]);
 const payment = ref<Payment>({
   card_number: "",
   expiry_month: "",
   expiry_year: "",
   card_holder_name: "",
-  cvv: ""
+  cvv: "",
 });
+
+// ----------------------------
+// ✅ VALIDATION LOGIC
+// ----------------------------
+
+const validateStep1 = () => {
+  // Buyer info
+  if (!buyer.value.name || !buyer.value.email || !buyer.value.phone) {
+    snackbar.show("Please fill all buyer details", "error");
+    return false;
+  }
+
+  // At least one attendee
+  if (attendees.value.length === 0) {
+    snackbar.show("Please add at least one attendee", "error");
+    return false;
+  }
+
+  // Validate each attendee
+  for (const [index, a] of attendees.value.entries()) {
+    if (!a.name || !a.email || !a.phone_no) {
+      snackbar.show(`Please fill all details for attendee ${index + 1}`, "error");
+      return false;
+    }
+    if (!a.ticket_id) {
+      snackbar.show(`Please select a ticket for attendee ${index + 1}`, "error");
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const validateStep2 = () => {
+  const p = payment.value;
+  if (!p.card_number || !p.expiry_month || !p.expiry_year || !p.card_holder_name || !p.cvv) {
+    snackbar.show("Please fill all payment details", "error");
+    return false;
+  }
+  return true;
+};
+
+// ----------------------------
+// ✅ STEP NAVIGATION
+// ----------------------------
+
 const goToStep = (stepId: number) => {
+  // prevent skipping steps manually
+  if (stepId > currentStep.value + 1) return;
+
+  // validation before next step
+  if (stepId === 2 && !validateStep1()) return;
+  if (stepId === 3 && !validateStep2()) return;
+
   currentStep.value = stepId;
 };
 
@@ -133,20 +189,57 @@ const onBannerImageError = () => {
   bannerImage.value = defaultEventImg;
 };
 
+// ----------------------------
+// ✅ BOOKING SUBMIT
+// ----------------------------
 const submitBooking = async () => {
+  if (!validateStep2()) return;
+
   try {
-    const payload = { buyer: buyer.value, event_id: event.id, payment: payment.value, attendees: attendees.value };
-    console.log(payload,'<<<<<<<<<<<<<payload')
-    await api.post("/tickets/purchase", payload);
-    currentStep.value = 3;
-  } catch (err) {
-    alert("Booking failed!");
+    const payload = {
+      buyer: buyer.value,
+      event_id: event.id,
+      payment: payment.value,
+      attendees: attendees.value,
+    };
+
+    const response = await api.post("/tickets/purchase", payload);
+
+    if (response.data.status) {
+      currentStep.value = 3;
+    } else {
+      // Handle server-side errors when status = false
+      if (response.data.errors) {
+        const firstErrorKey = Object.keys(response.data.errors)[0];
+        const firstErrorMsg = response.data.errors[firstErrorKey][0];
+        snackbar.show(firstErrorMsg, "error");
+      } else if (response.data.message) {
+        snackbar.show(response.data.message, "error");
+      } else {
+        snackbar.show("Booking failed! Please check your details.", "error");
+      }
+    }
+  } catch (error: unknown) {
+    const err = error as AxiosError<any>;
+    console.error("Booking API error:", err);
+
+    if (err.response?.data?.errors) {
+      const errors = err.response.data.errors;
+      const firstKey = Object.keys(errors)[0];
+      const firstMessage = errors[firstKey][0];
+      snackbar.show(firstMessage, "error");
+    } else if (err.response?.data?.message) {
+      snackbar.show(err.response.data.message, "error");
+    } else {
+      snackbar.show("Something went wrong. Please try again.", "error");
+    }
   }
 };
 
-const goToEvents = () => router.push("/user/events");
 
-
+// ----------------------------
+// ✅ ADD ATTENDEE
+// ----------------------------
 const addAttendee = () => {
   attendees.value.push({
     name: "",
@@ -157,10 +250,19 @@ const addAttendee = () => {
   });
 };
 
-console.log(event.tickets,"<event")
+const goToEvents = () => router.push("/user/events");
 
-const formatDate = (date: string) => date ? new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "N/A";
+const formatDate = (date: string) =>
+  date
+    ? new Date(date).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    })
+    : "N/A";
+
 </script>
+
 
 
 <style scoped>

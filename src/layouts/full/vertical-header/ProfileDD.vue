@@ -4,7 +4,6 @@ import {
   UserIcon,
   EditIcon,
   SettingsIcon,
-  CreditCardIcon,
   HelpCircleIcon,
   LogoutIcon,
 } from 'vue-tabler-icons';
@@ -13,7 +12,6 @@ import NavItem from '../vertical-sidebar/NavItem/index.vue';
 import OverviewTab from '@/components/profile/tabs/OverviewTab.vue';
 import EditProfileTab from '@/components/profile/tabs/EditProfileTab.vue';
 import AccountSettingsTab from '@/components/profile/tabs/AccountSettingsTab.vue';
-import PaymentMethodsTab from '@/components/profile/tabs/PaymentMethodsTab.vue';
 import SupportCenterTab from '@/components/profile/tabs/SupportCenterTab.vue';
 import { useSnackbarStore } from '@/store/snackbar';
 
@@ -25,19 +23,36 @@ const tabComponents = {
   overview: OverviewTab,
   edit: EditProfileTab,
   account: AccountSettingsTab,
-  // payments: PaymentMethodsTab,
   support: SupportCenterTab,
 };
 
-// Get role from localStorage
+// Get role & user info from localStorage
 const userRole = localStorage.getItem('role');
+const userData = JSON.parse(localStorage.getItem('user') || '{}');
+
+// ✅ Compute initials based on role
+const userInitials = computed(() => {
+  const role = userRole;
+
+  if (role === 'super_admin') return 'SA';
+
+  if (role === 'admin') {
+    const first = userData?.first_name?.[0] || '';
+    const last = userData?.last_name?.[0] || '';
+    return (first + last).toUpperCase() || 'AD';
+  }
+
+  // Default: normal user
+  const name = userData?.name || '';
+  return name ? name.slice(0, 2).toUpperCase() : 'US';
+});
+
 
 // All menu items
 const allMenuItems = [
   { tab: 'overview', title: 'Overview', icon: UserIcon },
   { tab: 'edit', title: 'Edit Profile', icon: EditIcon },
   { tab: 'account', title: 'Account Settings', icon: SettingsIcon },
-  // { tab: 'payments', title: 'Payment Methods', icon: CreditCardIcon },
   { tab: 'support', title: 'Support Center', icon: HelpCircleIcon },
   { tab: 'logout', title: 'Logout', icon: LogoutIcon, logout: true },
 ];
@@ -48,15 +63,14 @@ const menuItems =
     ? allMenuItems
     : allMenuItems.filter((item) => item.tab !== 'overview' || item.logout);
 
-// ✅ Set active tab dynamically based on role
-const activeTab = ref(
-  userRole === 'user' ? 'overview' : 'edit' // if not user, start from edit tab
-);
+// ✅ Default tab based on role
+const activeTab = ref(userRole === 'user' ? 'overview' : 'edit');
 
 const currentComponent = computed(() =>
   tabComponents[activeTab.value as keyof typeof tabComponents] || EditProfileTab
 );
 
+// ✅ Handle menu click
 const handleItemClick = (item: any) => {
   if (item.logout) {
     authStore.logout();
@@ -66,15 +80,14 @@ const handleItemClick = (item: any) => {
   }
 };
 </script>
-
-
 <template>
   <!-- Profile Button -->
   <v-menu :close-on-content-click="false">
     <template #activator="{ props }">
       <v-btn v-bind="props" icon @click="profileDialog = true">
-        <v-avatar size="35">
-          <img src="@/assets/images/users/avatar-1.png" alt="user" />
+        <!-- Avatar Circle -->
+        <v-avatar size="35" color="primary" class="d-flex align-center justify-center text-white font-weight-medium">
+          {{ userInitials }}
         </v-avatar>
       </v-btn>
     </template>
@@ -91,8 +104,13 @@ const handleItemClick = (item: any) => {
           </div>
           <v-divider></v-divider>
           <v-list nav dense>
-            <NavItem v-for="item in menuItems" :key="item.tab" :item="item"
-              :class="{ 'active-item': activeTab === item.tab }" @click="handleItemClick(item)" />
+            <NavItem
+              v-for="item in menuItems"
+              :key="item.tab"
+              :item="item"
+              :class="{ 'active-item': activeTab === item.tab }"
+              @click="handleItemClick(item)"
+            />
           </v-list>
         </div>
 
@@ -104,8 +122,14 @@ const handleItemClick = (item: any) => {
     </v-card>
   </v-dialog>
 
-  <v-snackbar v-model="useSnackbarStore().snackbar" :color="useSnackbarStore().color" timeout="4000"
-    location="top right" transition="slide-x-reverse-transition" class="custom-snackbar">
+  <v-snackbar
+    v-model="useSnackbarStore().snackbar"
+    :color="useSnackbarStore().color"
+    timeout="4000"
+    location="top right"
+    transition="slide-x-reverse-transition"
+    class="custom-snackbar"
+  >
     <div class="snackbar-content">
       <v-icon v-if="useSnackbarStore().color === 'success'" size="22" class="me-1" color="white">
         mdi-check-circle
@@ -113,13 +137,12 @@ const handleItemClick = (item: any) => {
       <v-icon v-else-if="useSnackbarStore().color === 'error'" size="22" class="me-1" color="white">
         mdi-alert-circle
       </v-icon>
-      <v-icon v-else size="22" color="white" class="me-1">
-        mdi-information
-      </v-icon>
+      <v-icon v-else size="22" color="white" class="me-1">mdi-information</v-icon>
       <span class="snackbar-text">{{ useSnackbarStore().message }}</span>
     </div>
   </v-snackbar>
 </template>
+
 
 <style scoped>
 .sidebar {

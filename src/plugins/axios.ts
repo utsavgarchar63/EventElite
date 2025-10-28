@@ -1,8 +1,10 @@
 // src/plugins/axios.ts
+import { useSnackbarStore } from "@/store/snackbar";
 import axios from "axios";
 
 // Enable sending cookies with every request
 
+const snackbar = useSnackbarStore()
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL,
     withCredentials: true,
@@ -29,9 +31,10 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             // Optionally clear auth and redirect
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            window.location.href = "/auth/login"; // or use router
+            snackbar.show("Internal server error", "error")
+            // localStorage.removeItem("token");
+            // localStorage.removeItem("user");
+            // window.location.href = "/auth/login"; // or use router
         }
         console.error("API Error:", error.response?.data || error.message);
         return Promise.reject(error);
