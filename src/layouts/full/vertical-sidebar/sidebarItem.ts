@@ -6,8 +6,7 @@ import {
     CalendarIcon,
     TicketIcon,
     UserIcon,
-
-    
+    HeartHandshakeIcon,
 } from "vue-tabler-icons";
 
 export interface Menu {
@@ -38,6 +37,11 @@ const superAdminMenu: Menu[] = [
         title: 'Reports',
         icon: DeviceAnalyticsIcon,
         to: '/super-admin/reports',
+    },
+    {
+        title: 'Supports',
+        icon: HeartHandshakeIcon,
+        to: '/super-admin/supports',
     },
     // {
     //     title: 'Subscriptions',
