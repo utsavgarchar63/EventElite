@@ -39,11 +39,11 @@ const superAdminMenu: Menu[] = [
         icon: DeviceAnalyticsIcon,
         to: '/super-admin/reports',
     },
-    {
-        title: 'Supports',
-        icon: HeartHandshakeIcon,
-        to: '/super-admin/supports',
-    },
+    // {
+    //     title: 'Supports',
+    //     icon: HeartHandshakeIcon,
+    //     to: '/super-admin/supports',
+    // },
     {
         title: 'Subscriptions',
         icon: IconCreditCard,
