@@ -9,7 +9,17 @@
                     <!-- Search -->
                     <v-text-field v-model="search" placeholder="Search Attendees" density="compact" variant="outlined"
                         hide-details clearable append-inner-icon="mdi-magnify" class="search-bar" />
+
+                    <!-- Sort Dropdown -->
+                    <v-select v-model="sortType" :items="[
+                        { title: 'A → Z', value: 1 },
+                        { title: 'Z → A', value: 2 },
+                        { title: 'Low → High Spend', value: 3 },
+                        { title: 'High → Low Spend', value: 4 }
+                    ]" density="compact" label="Sort By" variant="outlined" hide-details style="width:180px"
+                        @update:model-value="fetchAttendees" />
                 </div>
+
             </div>
 
             <!-- Loader -->
@@ -46,6 +56,7 @@ const snackbar = useSnackbarStore();
 
 const loading = ref(false);
 const search = ref('');
+const sortType = ref(null);
 const attendees = ref([]);
 const totalAttendees = ref(0);
 const page = ref(1);
@@ -71,9 +82,11 @@ const fetchAttendees = async () => {
         const response = await api.get(`/attendees/list/${user.organization_id || org_id}`, {
             params: {
                 page: page.value,
-                search: search.value || ''
+                search: search.value || '',
+                sort: sortType.value || null
             }
         });
+
 
         if (response.data.success) {
             const result = response.data.data;
@@ -127,6 +140,7 @@ onMounted(fetchAttendees);
 watch(page, fetchAttendees);
 watch(search, () => {
     page.value = 1;
+    if (!search.value) sortType.value = null;
     fetchAttendees();
 });
 </script>

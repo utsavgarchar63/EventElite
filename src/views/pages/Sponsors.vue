@@ -14,18 +14,12 @@
               hide-details clearable append-inner-icon="mdi-magnify" class="search-bar" />
 
             <!-- Sort Menu -->
-            <v-menu v-model="sortMenu" offset-y>
-              <template #activator="{ props }">
-                <v-btn v-bind="props" variant="outlined" class="d-flex align-center gap-2">
-                  <v-icon>mdi-sort</v-icon> Sort
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item v-for="option in sortOptions" :key="option.value" @click="applySort(option.value)">
-                  <v-list-item-title>{{ option.label }}</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
+            <v-select v-model="sortType" :items="[
+              { title: 'A → Z', value: 1 },
+              { title: 'Z → A', value: 2 }
+            ]" density="compact" label="Sort By" style="width:200px" variant="outlined" hide-details
+              @update:model-value="applySort" />
+
           </v-col>
         </v-row>
       </div>
@@ -95,6 +89,7 @@ const snackbar = useSnackbarStore();
 const loading = ref(false);
 const search = ref('');
 const sponsors = ref([]);
+const sortType = ref(null);
 const totalSponsors = ref(0);
 const page = ref(1);
 const pageCount = ref(0);
@@ -171,10 +166,12 @@ const filteredSponsors = computed(() => {
   );
 });
 
-const applySort = (value) => {
-  currentSort.value = value;
+const applySort = () => {
+  currentSort.value = sortType.value;
+  page.value = 1; // Reset pagination
   fetchSponsors();
 };
+
 
 const viewSponsor = (item) => {
   window.open(item.link, '_blank');

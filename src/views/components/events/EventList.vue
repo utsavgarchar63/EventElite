@@ -32,10 +32,9 @@
                         class="view-select" density="compact" prepend-inner-icon="mdi-view-list" />
 
                     <!-- Filter Icon -->
-                    <v-btn icon class="filter-btn" @click="openFilterDialog">
+                    <!-- <v-btn icon class="filter-btn" @click="openFilterDialog">
                         <v-icon>mdi-filter-variant</v-icon>
                     </v-btn>
-                    <!-- Filter Icon with Dropdown -->
                     <v-menu v-model="filterMenu" offset-y :close-on-content-click="false">
                         <template #activator="{ props }">
                             <v-btn icon class="filter-btn" v-bind="props">
@@ -44,11 +43,9 @@
                         </template>
 
                         <v-card style="width: 350px; padding: 15px; border-radius: 10px !important">
-                            <!-- Search Inside Dropdown -->
                             <v-text-field v-model="filterSearch" placeholder="Search fields" variant="outlined"
                                 density="compact" clearable prepend-inner-icon="mdi-magnify" />
 
-                            <!-- Checkboxes -->
                             <v-checkbox v-model="selectAll" label="Select All" color="primary" @change="toggleSelectAll"
                                 hide-details />
 
@@ -56,14 +53,21 @@
                                 :label="field.label" :value="field.value" :disabled="selectAll" color="primary"
                                 hide-details />
 
-                            <!-- Action Buttons -->
                             <div class="d-flex mt-3 gap-2">
                                 <v-btn variant="outlined" class="w-50" color="primary" size="large"
                                     @click="clearFilters">Clear</v-btn>
                                 <v-btn color="primary" class="w-50" size="large" @click="applyFilters">Filter</v-btn>
                             </div>
                         </v-card>
-                    </v-menu>
+                    </v-menu> -->
+                    <v-select v-model="sortType" :items="[
+                        { title: 'A → Z', value: 1 },
+                        { title: 'Z → A', value: 2 },
+                        { title: 'Low → High Price', value: 3 },
+                        { title: 'High → Low Price', value: 4 }
+                    ]" density="compact" label="Sort By" style="width:200px" variant="outlined" hide-details
+                        @update:model-value="fetchEvents" />
+
                 </div>
             </div>
 
@@ -126,6 +130,7 @@ const events = ref([]);
 const totalEvents = ref(0);
 const page = ref(1);
 const pageCount = ref(0);
+const sortType = ref(null);
 
 const menu = ref(false);
 const dates = ref([]);
@@ -184,7 +189,11 @@ const fetchEvents = async () => {
         const org_id = localStorage.getItem('organization_id'); // get the string
         const user = userString ? JSON.parse(userString) : null;
         const response = await api.get(`/events/${props.eventType}/${user.organization_id || org_id}`, {
-            params: { page: page.value, search: search.value || '' }
+            params: {
+                page: page.value,
+                search: search.value || '',
+                sort: sortType.value || null  
+            }
         });
 
         if (response.data.status) {
@@ -235,6 +244,7 @@ const clearFilters = () => {
     selectedFilters.value = [];
     selectAll.value = false;
     filterSearch.value = '';
+    sortType.value = null;
 };
 
 // Apply Filters

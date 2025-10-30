@@ -2,15 +2,24 @@
   <v-container>
     <div class="table-wrapper" style="background: white; border-radius: 8px; padding: 16px">
       <!-- Header -->
-      <div class="header-section d-flex justify-space-between align-center flex-wrap mb-4">
+      <div class="header-section  d-flex justify-space-between align-center flex-wrap mb-4">
         <h5 class="title h3 mb-2 mb-md-0">
           All Subscription Plans ({{ totalSubscriptions }})
         </h5>
 
         <div class="d-flex gap-3 flex-wrap">
+
           <v-text-field v-model="search" placeholder="Search Plan" density="compact" variant="outlined" hide-details
             clearable append-inner-icon="mdi-magnify" class="search-bar" />
+          <v-select v-model="sortType" :items="[
+            { title: 'A → Z', value: 1 },
+            { title: 'Z → A', value: 2 },
+            { title: 'Low → High Price', value: 3 },
+            { title: 'High → Low Price', value: 4 }
+          ]" density="compact" label="Sort By" style="width:200px" variant="outlined" hide-details
+            @update:model-value="fetchSubscriptions" />
           <v-btn color="primary" prepend-icon="mdi-plus" @click="openAddDialog">Add Plan</v-btn>
+
         </div>
       </div>
 
@@ -25,10 +34,15 @@
           density="comfortable">
           <!-- Status -->
           <template #item.is_active="{ item }">
-            <v-chip :color="item.is_active ? 'green' : 'red'" variant="flat" size="small">
+            <v-chip :style="{
+              backgroundColor: item.is_active ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+              color: item.is_active ? '#10B981' : '#EF4444',
+              fontWeight: '600'
+            }" variant="flat" size="small">
               {{ item.is_active ? 'Active' : 'Inactive' }}
             </v-chip>
           </template>
+
 
           <!-- Created Date -->
           <template #item.created_at="{ item }">
@@ -61,36 +75,63 @@
 
       <!-- Add / Edit Dialog -->
       <v-dialog v-model="formDialog" max-width="600px" persistent>
-        <v-card>
-          <v-card-title>
-            {{ isEdit ? 'Update Subscription Plan' : 'Add Subscription Plan' }}
-          </v-card-title>
+        <v-card class="rounded-lg elevation-3">
 
-          <v-card-text>
+          <!-- HEADER (Sticky) -->
+          <div class="dialog-header px-4 py-3 d-flex justify-space-between align-center">
+            <h3 class="font-weight-bold m-0">
+              {{ isEdit ? 'Update Subscription Plan' : 'Add Subscription Plan' }}
+            </h3>
+            <v-btn icon variant="text" @click="closeFormDialog">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </div>
+
+          <!-- BODY -->
+          <v-card-text class="px-4 py-3" style="max-height: 65vh; overflow-y: auto;">
             <v-form ref="planForm" lazy-validation>
-              <v-text-field v-model="form.title" label="Title" variant="outlined" required />
-              <v-text-field v-model="form.sub_title" label="Sub Title" variant="outlined" />
-              <v-textarea v-model="form.description" label="Description" variant="outlined" />
-              <v-text-field v-model="form.price" label="Price (₹)" type="number" variant="outlined" required />
+
+              <v-text-field v-model="form.title" label="Title" variant="outlined" density="comfortable" required />
+
+              <v-text-field v-model="form.sub_title" label="Sub Title" variant="outlined" density="comfortable" />
+
+              <v-textarea v-model="form.description" label="Description" variant="outlined" density="comfortable"
+                rows="3" />
+
+              <v-text-field v-model="form.price" label="Price (₹)" type="number" variant="outlined"
+                density="comfortable" required />
 
               <!-- Drag & Drop Image Upload -->
-              <div class="drop-zone" @dragover.prevent @drop.prevent="handleDrop" @click="fileInput.click()">
-                <p v-if="!form.imagePreview">Drag & drop an image here or click to upload</p>
-                <v-img v-if="form.imagePreview" :src="form.imagePreview" max-height="150" class="rounded" />
+              <div class="drop-zone mt-3" @dragover.prevent @drop.prevent="handleDrop" @click="fileInput.click()">
+                <template v-if="!form.imagePreview">
+                  <v-icon size="40" class="text-primary">mdi-image-plus</v-icon>
+                  <p class="text-grey text-caption mt-1">
+                    Drag & drop or click to upload
+                  </p>
+                </template>
+
+                <v-img v-else :src="form.imagePreview" max-height="150" class="rounded-lg" cover />
                 <input type="file" accept="image/*" ref="fileInput" class="d-none" @change="handleFileChange" />
               </div>
+
             </v-form>
           </v-card-text>
 
-          <v-card-actions>
+          <!-- FOOTER (Sticky) -->
+          <v-card-actions class="dialog-footer px-4 py-3">
             <v-spacer></v-spacer>
-            <v-btn variant="outlined" color="grey" @click="closeFormDialog">Cancel</v-btn>
-            <v-btn color="primary" variant="elevated" @click="saveSubscription" :loading="formLoading">
+
+            <v-btn variant="outlined" color="grey-darken-1" @click="closeFormDialog">
+              Cancel
+            </v-btn>
+
+            <v-btn color="primary" variant="flat" @click="saveSubscription" :loading="formLoading">
               {{ isEdit ? 'Update' : 'Save' }}
             </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
+
     </div>
   </v-container>
   <v-snackbar v-model="useSnackbarStore().snackbar" :color="useSnackbarStore().color" timeout="4000"
@@ -119,6 +160,7 @@ const snackbar = useSnackbarStore();
 const loading = ref(false);
 const subscriptions = ref([]);
 const search = ref('');
+const sortType = ref(null);
 const totalSubscriptions = ref(0);
 const deleteDialog = ref(false);
 const selectedId = ref(null);
@@ -154,24 +196,19 @@ const headers = [
 // Fetch Subscription Data
 const fetchSubscriptions = async () => {
   loading.value = true;
+
   try {
-    const response = await api.get('/super-admin/get-subscription-plans');
-    if (response.data.status) {
-      subscriptions.value = response.data.data.map(plan => ({
-        id: plan.id,
-        title: plan.title,
-        sub_title: plan.sub_title,
-        description: plan.description,
-        price: plan.price,
-        is_active: plan.is_active,
-        created_at: plan.created_at,
-        updated_at: plan.updated_at,
-        image: plan.image,
-      }));
-      totalSubscriptions.value = subscriptions.value.length;
+    const params = {};
+
+    if (sortType.value) {
+      params.sort = sortType.value;
     }
-  } catch (error) {
-    console.error('Failed to fetch subscriptions:', error);
+
+    const response = await api.get('/super-admin/get-subscription-plans', { params });
+
+    subscriptions.value = response.data.data;
+    totalSubscriptions.value = subscriptions.value.length;
+
   } finally {
     loading.value = false;
   }
@@ -334,6 +371,7 @@ onMounted(fetchSubscriptions);
 .search-bar {
   background-color: #f4f4f4;
   border-radius: 8px;
+  height: fit-content;
   width: 250px;
 }
 
@@ -356,5 +394,31 @@ onMounted(fetchSubscriptions);
 
 .drop-zone:hover {
   background-color: #f7f7f7;
+}
+
+.dialog-header {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  border-bottom: 1px solid #eee;
+}
+
+.dialog-footer {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  z-index: 10;
+  border-top: 1px solid #eee;
+}
+
+.drop-zone {
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  border-color: #1976d2;
+  background: #f3f8ff;
+
+  cursor: pointer;
 }
 </style>

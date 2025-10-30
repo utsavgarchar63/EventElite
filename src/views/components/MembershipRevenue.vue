@@ -10,39 +10,48 @@
         </h1>
 
         <!-- Filters Section -->
-        <div v-if="showFilters" class="filters d-flex align-center">
-          <!-- Search -->
-          <v-text-field v-model="search" label="Search" prepend-inner-icon="mdi-magnify" dense variant="outlined"
-            hide-details clearable style="min-width: 200px;" />
+      </div>
+      <div v-if="showFilters" class="filters d-flex align-center">
+        <!-- Search -->
+        <v-text-field v-model="search" label="Search" prepend-inner-icon="mdi-magnify" dense variant="outlined"
+          hide-details clearable style="min-width: 200px;" />
 
-          <!-- Date Picker -->
-          <v-menu v-model="menu" :close-on-content-click="false" transition="scale-transition" offset-y>
-            <template #activator="{ props }">
-              <v-text-field v-bind="props" v-model="formattedDate" label="Select Date Range" dense variant="outlined"
-                hide-details readonly prepend-inner-icon="mdi-calendar" style="min-width: 200px;" />
-            </template>
+        <!-- Date Picker -->
+        <v-menu v-model="menu" :close-on-content-click="false" transition="scale-transition" offset-y>
+          <template #activator="{ props }">
+            <v-text-field v-bind="props" v-model="formattedDate" label="Select Date Range" dense variant="outlined"
+              hide-details readonly prepend-inner-icon="mdi-calendar" style="min-width: 200px;" />
+          </template>
 
-            <v-card>
-              <v-date-picker v-model="dates" range scrollable @update:model-value="updateFormattedDate" />
-              <v-card-actions>
-                <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
-                <v-btn text color="primary" @click="applyDateFilter">Apply</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-menu>
+          <v-card>
+            <v-date-picker v-model="dates" range scrollable @update:model-value="updateFormattedDate" />
+            <v-card-actions>
+              <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
+              <v-btn text color="primary" @click="applyDateFilter">Apply</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-menu>
 
-          <!-- View Switch -->
-          <v-select v-model="view" :items="viewOptions" dense variant="outlined" hide-details style="min-width: 150px;"
-            prepend-inner-icon="mdi-view-list" />
+        <!-- View Switch -->
+        <v-select v-model="view" :items="viewOptions" dense variant="outlined" hide-details style="min-width: 150px;"
+          prepend-inner-icon="mdi-view-list" />
 
-          <!-- Filter Icons -->
-          <v-btn icon class="filter-btn" @click="openFilterDialog">
-            <v-icon>mdi-filter-variant</v-icon>
-          </v-btn>
-          <v-btn icon class="filter-btn" @click="openFilterDialog">
-            <v-icon>mdi-filter</v-icon>
-          </v-btn>
-        </div>
+        <!-- Filter Icons -->
+        <!-- Sort -->
+        <v-select v-model="sortType" :items="[
+          { title: 'A → Z', value: 1 },
+          { title: 'Z → A', value: 2 },
+          { title: 'Low → High Revenue', value: 3 },
+          { title: 'High → Low Revenue', value: 4 }
+        ]" dense variant="outlined" hide-details style="min-width: 200px;" label="Sort By"
+          @update:model-value="fetchMembershipData" />
+
+        <!-- <v-btn icon class="filter-btn" @click="openFilterDialog">
+          <v-icon>mdi-filter-variant</v-icon>
+        </v-btn>
+        <v-btn icon class="filter-btn" @click="openFilterDialog">
+          <v-icon>mdi-filter</v-icon>
+        </v-btn> -->
       </div>
 
       <!-- Table -->
@@ -59,7 +68,7 @@
 
       <!-- Pagination -->
       <div class="pagination-container">
-        <v-pagination v-model="page" :length="pageCount" total-visible="5" @update:modelValue="fetchOrganizationData" />
+        <v-pagination v-model="page" :length="pageCount" total-visible="5" @update:modelValue="fetchMembershipData" />
       </div>
     </div>
   </v-container>
@@ -88,6 +97,8 @@ const formattedDate = ref("");
 const page = ref(1);
 const itemsPerPage = ref(10);
 const pageCount = ref(0);
+const sortType = ref(null);
+
 
 // Headers
 const headers = [
@@ -119,19 +130,24 @@ const applyDateFilter = () => {
 
 watch(search, () => {
   page.value = 1; // Reset to first page on new search
-  fetchOrganizationData();
+  fetchMembershipData();
 });
 
 // Fetch data with pagination
 const loading = ref(false);
 
 // Fetch data with spinner
-const fetchOrganizationData = async () => {
+const fetchMembershipData = async () => {
   loading.value = true;
   try {
-    const response = await api.get(
-      `/report/membership?page=${page.value}&search=${encodeURIComponent(search.value)}`
-    );
+    const response = await api.get(`/report/membership`, {
+      params: {
+        page: page.value,
+        search: search.value,
+        sort: sortType.value 
+      }
+    });
+
     if (response.data.success) {
       const result = response.data.data;
       organizationData.value = result.data;
@@ -143,9 +159,10 @@ const fetchOrganizationData = async () => {
   } catch (error) {
     console.error("Failed to fetch organization data:", error);
   } finally {
-    loading.value = false; // Hide spinner after API call
+    loading.value = false;
   }
 };
+
 
 
 
@@ -166,7 +183,7 @@ const openFilterDialog = () => {
 
 // On Mounted
 onMounted(() => {
-  fetchOrganizationData();
+  fetchMembershipData();
 });
 </script>
 
@@ -243,11 +260,11 @@ onMounted(() => {
   justify-content: center;
   margin-top: 20px;
 }
+
 .spinner-container {
   display: flex;
   justify-content: center;
   align-items: center;
   margin-top: 20px;
 }
-
 </style>

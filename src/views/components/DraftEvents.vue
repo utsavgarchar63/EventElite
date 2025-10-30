@@ -6,35 +6,44 @@
       <div class="header-section">
         <h1 class="title">Draft Events ({{ totalEvents }})</h1>
 
-        <div class="filters">
-          <!-- Search -->
-          <v-text-field v-model="search" label="Search by Event Name" prepend-inner-icon="mdi-magnify" clearable dense
-            variant="outlined" hide-details style="min-width: 200px;" />
+      </div>
+      <div class="filters">
+        <!-- Search -->
+        <v-text-field v-model="search" label="Search by Event Name" prepend-inner-icon="mdi-magnify" clearable dense
+          variant="outlined" hide-details style="min-width: 200px;" />
 
-          <!-- Date Picker -->
-          <v-menu v-model="menu" :close-on-content-click="false" transition="scale-transition" offset-y>
-            <template #activator="{ props }">
-              <v-text-field v-bind="props" v-model="formattedDate" label="Select Date Range" dense variant="outlined"
-                hide-details readonly prepend-inner-icon="mdi-calendar" style="min-width: 200px;" />
-            </template>
-            <v-card>
-              <v-date-picker v-model="dates" range scrollable @update:model-value="updateFormattedDate" />
-              <v-card-actions>
-                <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
-                <v-btn text color="primary" @click="applyDateFilter">Apply</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-menu>
+        <!-- Date Picker -->
+        <v-menu v-model="menu" :close-on-content-click="false" transition="scale-transition" offset-y>
+          <template #activator="{ props }">
+            <v-text-field v-bind="props" v-model="formattedDate" label="Select Date Range" dense variant="outlined"
+              hide-details readonly prepend-inner-icon="mdi-calendar" style="min-width: 200px;" />
+          </template>
+          <v-card>
+            <v-date-picker v-model="dates" range scrollable @update:model-value="updateFormattedDate" />
+            <v-card-actions>
+              <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
+              <v-btn text color="primary" @click="applyDateFilter">Apply</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-menu>
 
-          <!-- View Switch -->
-          <v-select v-model="view" :items="viewOptions" dense variant="outlined" hide-details
-            prepend-inner-icon="mdi-view-list" style="min-width: 150px;" />
+        <!-- View Switch -->
+        <v-select v-model="view" :items="viewOptions" dense variant="outlined" hide-details
+          prepend-inner-icon="mdi-view-list" style="min-width: 150px;" />
 
-          <!-- Filter Button -->
-          <v-btn icon class="filter-btn" @click="openFilterDialog">
-            <v-icon>mdi-filter-variant</v-icon>
-          </v-btn>
-        </div>
+        <!-- Filter Button -->
+        <!-- <v-btn icon class="filter-btn" @click="openFilterDialog">
+          <v-icon>mdi-filter-variant</v-icon>
+        </v-btn> -->
+        <!-- Sort -->
+        <v-select v-model="sortType" :items="[
+          { title: 'A → Z', value: 1 },
+          { title: 'Z → A', value: 2 },
+          { title: 'Low → High Price', value: 3 },
+          { title: 'High → Low Price', value: 4 }
+        ]" dense variant="outlined" hide-details style="min-width: 200px;" label="Sort By"
+          @update:model-value="fetchDraftEvents" />
+
       </div>
 
       <!-- Events Table -->
@@ -74,6 +83,7 @@ import api from "@/plugins/axios";
 
 // --- State ---
 const search = ref("");
+const sortType = ref(null);
 const eventsData = ref<any[]>([]);
 const totalEvents = ref(0);
 
@@ -129,8 +139,10 @@ const fetchDraftEvents = async () => {
   try {
     const params: any = {
       page: page.value,
-      per_page: itemsPerPage.value
+      per_page: itemsPerPage.value,
+      sort: sortType.value
     };
+
 
     if (search.value) params.search = search.value;
 
@@ -170,6 +182,7 @@ onMounted(() => fetchDraftEvents());
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  margin-bottom: 16px;
 }
 
 

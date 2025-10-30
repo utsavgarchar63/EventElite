@@ -8,35 +8,45 @@
         <h1 class="title">Cancelled Events ({{ totalEvents }})</h1>
 
         <!-- Filters -->
-        <div class="filters">
-          <!-- Search -->
-          <v-text-field v-model="search" label="Search by Event Name" prepend-inner-icon="mdi-magnify" clearable dense
-            variant="outlined" hide-details style="min-width: 200px;" />
+      </div>
+      <div class="filters">
+        <!-- Search -->
+        <v-text-field v-model="search" label="Search by Event Name" prepend-inner-icon="mdi-magnify" clearable dense
+          variant="outlined" hide-details style="min-width: 200px;" />
 
-          <!-- Date Picker -->
-          <v-menu v-model="menu" :close-on-content-click="false" transition="scale-transition" offset-y>
-            <template #activator="{ props }">
-              <v-text-field v-bind="props" v-model="formattedDate" label="Select Date Range" dense variant="outlined"
-                hide-details readonly prepend-inner-icon="mdi-calendar" style="min-width: 200px;" />
-            </template>
-            <v-card>
-              <v-date-picker v-model="dates" range scrollable @update:model-value="updateFormattedDate" />
-              <v-card-actions>
-                <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
-                <v-btn text color="primary" @click="applyDateFilter">Apply</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-menu>
+        <!-- Date Picker -->
+        <v-menu v-model="menu" :close-on-content-click="false" transition="scale-transition" offset-y>
+          <template #activator="{ props }">
+            <v-text-field v-bind="props" v-model="formattedDate" label="Select Date Range" dense variant="outlined"
+              hide-details readonly prepend-inner-icon="mdi-calendar" style="min-width: 200px;" />
+          </template>
+          <v-card>
+            <v-date-picker v-model="dates" range scrollable @update:model-value="updateFormattedDate" />
+            <!-- <v-card-actions>
+              <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
+              <v-btn text color="primary" @click="applyDateFilter">Apply</v-btn>
+            </v-card-actions> -->
+            <!-- Sort -->
 
-          <!-- View Switch -->
-          <v-select v-model="view" :items="viewOptions" dense variant="outlined" hide-details
-            prepend-inner-icon="mdi-view-list" style="min-width: 150px;" />
+          </v-card>
+        </v-menu>
 
-          <!-- Filter Button -->
-          <v-btn icon class="filter-btn" @click="openFilterDialog">
-            <v-icon>mdi-filter-variant</v-icon>
-          </v-btn>
-        </div>
+        <!-- View Switch -->
+        <v-select v-model="view" :items="viewOptions" dense variant="outlined" hide-details
+          prepend-inner-icon="mdi-view-list" style="min-width: 150px;" />
+
+        <!-- Filter Button -->
+        <!-- <v-btn icon class="filter-btn" @click="openFilterDialog">
+          <v-icon>mdi-filter-variant</v-icon>
+        </v-btn> -->
+        <v-select v-model="sortType" :items="[
+          { title: 'A → Z', value: 1 },
+          { title: 'Z → A', value: 2 },
+          { title: 'Low → High Price', value: 3 },
+          { title: 'High → Low Price', value: 4 }
+        ]" dense variant="outlined" hide-details style="min-width: 200px;" label="Sort By"
+          @update:model-value="fetchCancelledEvents" />
+
       </div>
 
       <!-- Events Table -->
@@ -79,6 +89,7 @@ import api from "@/plugins/axios";
 const search = ref("");
 const eventsData = ref<any[]>([]);
 const totalEvents = ref(0);
+const sortType = ref(null);
 
 // --- Date Picker ---
 const menu = ref(false);
@@ -132,7 +143,8 @@ const fetchCancelledEvents = async () => {
   try {
     const params: any = {
       page: page.value,
-      per_page: itemsPerPage.value
+      per_page: itemsPerPage.value,
+      sort: sortType.value
     };
 
     if (search.value) params.search = search.value;

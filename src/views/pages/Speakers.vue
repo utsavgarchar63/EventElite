@@ -12,19 +12,14 @@
                         hide-details clearable append-inner-icon="mdi-magnify" class="search-bar" />
 
                     <!-- Sort Menu -->
-                    <v-menu v-model="sortMenu" offset-y>
-                        <template #activator="{ props }">
-                            <v-btn v-bind="props" variant="outlined" class="d-flex align-center gap-2">
-                                <v-icon>mdi-sort</v-icon> Sort
-                            </v-btn>
-                        </template>
-                        <v-list>
-                            <v-list-item v-for="option in sortOptions" :key="option.value"
-                                @click="applySort(option.value)">
-                                <v-list-item-title>{{ option.label }}</v-list-item-title>
-                            </v-list-item>
-                        </v-list>
-                    </v-menu>
+                    <v-select v-model="sortType" :items="[
+                        { title: 'A → Z', value: 1 },
+                        { title: 'Z → A', value: 2 },
+                        { title: 'Fewer Events Attended', value: 3 },
+                        { title: 'Most Events Attended', value: 4 }
+                    ]" density="compact" label="Sort By" style="width:200px" variant="outlined" hide-details
+                        @update:model-value="applySort" />
+
                 </div>
             </div>
 
@@ -68,17 +63,10 @@ const search = ref('');
 const speakers = ref([]);
 const totalSpeakers = ref(0);
 const page = ref(1);
+const sortType = ref(null);
 const pageCount = ref(0);
-const sortMenu = ref(false);
 const currentSort = ref('');
 const router = useRouter();
-
-const sortOptions = [
-    { label: 'Most Events Attended', value: 'desc_events' },
-    { label: 'Fewer Events Attended', value: 'asc_events' },
-    { label: 'A-Z', value: 'az' },
-    { label: 'Z-A', value: 'za' }
-];
 
 const headers = [
     { title: 'Full Name', key: 'full_name' },
@@ -144,10 +132,12 @@ const filteredSpeakers = computed(() => {
         s.phone.includes(q)
     );
 });
-const applySort = (value) => {
-    currentSort.value = value;
+const applySort = () => {
+    currentSort.value = sortType.value;
+    page.value = 1; // reset pagination
     fetchSpeakers();
 };
+
 
 onMounted(fetchSpeakers);
 watch(page, fetchSpeakers);

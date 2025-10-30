@@ -38,12 +38,19 @@
                               class="responsive-input" prepend-inner-icon="mdi-view-list" />
 
                          <!-- Filter Icon -->
-                         <v-btn icon class="filter-btn" @click="openFilterDialog">
+                         <v-select v-model="sortType" :items="[
+                              { title: 'A → Z', value: 1 },
+                              { title: 'Z → A', value: 2 },
+                              { title: 'Low → High Revenue', value: 3 },
+                              { title: 'High → Low Revenue', value: 4 }
+                         ]" dense variant="outlined" hide-details style="wid0px" label="Sort By" />
+
+                         <!-- <v-btn icon class="filter-btn" @click="openFilterDialog">
                               <v-icon>mdi-filter-variant</v-icon>
-                         </v-btn>
-                         <v-btn icon class="filter-btn" @click="openFilterDialog">
+                         </v-btn> -->
+                         <!-- <v-btn icon class="filter-btn" @click="openFilterDialog">
                               <v-icon>mdi-filter</v-icon>
-                         </v-btn>
+                         </v-btn> -->
                     </div>
 
                </div>
@@ -90,10 +97,12 @@ const props = defineProps({
 });
 
 // State
+
 const search = ref("");
 const organizationData = ref<any[]>([]);
 const totalOrganizations = ref(0);
 const menu = ref(false);
+const sortType = ref(null);
 const view = ref("View");
 const page = ref(1);
 const itemsPerPage = ref(10);
@@ -134,15 +143,29 @@ watch(search, (newVal, oldVal) => {
      fetchOrganizationData();
 });
 
+watch(sortType, () => {
+  page.value = 1;
+  fetchOrganizationData();
+});
+
+
 // Fetch Data with Pagination
 const loading = ref(false);
 
 const fetchOrganizationData = async () => {
      loading.value = true; // Show spinner
      try {
-          const response = await api.get(
-               `/report/organisation?page=${page.value}&search=${encodeURIComponent(search.value)}`
-          );
+          // const response = await api.get(
+          //      `/report/organisation?page=${page.value}&search=${encodeURIComponent(search.value)}`
+          // );
+          const response = await api.get(`/report/organisation`, {
+               params: {
+                    page: page.value,
+                    search: search.value,
+                    sort: sortType.value  // ✅ send sort value to backend
+               }
+          });
+
           if (response.data.success) {
                const result = response.data.data;
                organizationData.value = result.data;
@@ -231,7 +254,7 @@ onMounted(() => {
 }
 
 .responsive-input {
-     min-width: 150px;
+     min-width: 90px;
      max-width: 100%;
      /* make sure it shrinks on mobile */
      flex: 1 1 auto;

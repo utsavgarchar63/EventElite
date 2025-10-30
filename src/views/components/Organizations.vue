@@ -5,48 +5,55 @@
                <!-- Header -->
                <div class="header-section">
                     <!-- Title -->
+                    <h5 class="title">
+                         Organization List ({{ totalOrganizations }} Orgs)
+                    </h5>
 
 
                     <!-- Filters Section (controlled by prop) -->
-                    <div v-if="showFilters" class="filters">
-                         <h5 class="title">
-                              Organization List ({{ totalOrganizations }} Orgs)
-                         </h5>
-                         <!-- Search -->
-                         <v-text-field v-model="search" label="Search by Name, Email, Phone, Address"
-                              prepend-inner-icon="mdi-magnify" dense variant="outlined" hide-details clearable
-                              class="search-bar" />
-                         <v-menu v-model="menu" :close-on-content-click="false" transition="scale-transition" offset-y>
-                              <template #activator="{ props }">
-                                   <v-text-field class="date-picker" v-bind="props" v-model="formattedDate"
-                                        label="Select Date Range" dense variant="outlined" hide-details readonly
-                                        prepend-inner-icon="mdi-calendar" />
-                              </template>
 
-                              <v-card>
-                                   <v-date-picker v-model="dates" range scrollable
-                                        @update:model-value="updateFormattedDate" />
-                                   <v-card-actions>
-                                        <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
-                                        <v-btn text color="primary" @click="applyDateFilter">Apply</v-btn>
-                                   </v-card-actions>
-                              </v-card>
-                         </v-menu>
+               </div>
+               <div v-if="showFilters" class="filters">
+                    <!-- Search -->
+                    <v-text-field v-model="search" label="Search by Name, Email, Phone, Address"
+                         prepend-inner-icon="mdi-magnify" dense variant="outlined" hide-details clearable
+                         class="search-bar" />
+                    <v-menu v-model="menu" :close-on-content-click="false" transition="scale-transition" offset-y>
+                         <template #activator="{ props }">
+                              <v-text-field class="date-picker" v-bind="props" v-model="formattedDate"
+                                   label="Select Date Range" dense variant="outlined" hide-details readonly
+                                   prepend-inner-icon="mdi-calendar" />
+                         </template>
 
+                         <v-card>
+                              <v-date-picker v-model="dates" range scrollable
+                                   @update:model-value="updateFormattedDate" />
+                              <v-card-actions>
+                                   <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
+                                   <v-btn text color="primary" @click="applyDateFilter">Apply</v-btn>
+                              </v-card-actions>
+                         </v-card>
+                    </v-menu>
 
 
-                         <v-select v-model="view" :items="viewOptions" dense variant="outlined" hide-details
-                              class="view-select" prepend-inner-icon="mdi-view-list" />
 
-                         <!-- Filter Icon -->
-                         <v-btn icon class="filter-btn" @click="openFilterDialog">
-                              <v-icon>mdi-filter-variant</v-icon>
-                         </v-btn>
-                         <v-btn icon class="filter-btn" @click="openFilterDialog">
-                              <v-icon>mdi-filter</v-icon>
-                         </v-btn>
-                    </div>
+                    <v-select v-model="view" :items="viewOptions" dense variant="outlined" hide-details
+                         class="view-select" prepend-inner-icon="mdi-view-list" />
 
+                    <!-- Filter Icon -->
+                    <!-- <v-btn icon class="filter-btn" @click="openFilterDialog">
+                         <v-icon>mdi-filter-variant</v-icon>
+                    </v-btn>
+                    <v-btn icon class="filter-btn" @click="openFilterDialog">
+                         <v-icon>mdi-filter</v-icon>
+                    </v-btn> -->
+                    <v-select v-model="sortType" :items="[
+                         { title: 'A → Z', value: 1 },
+                         { title: 'Z → A', value: 2 },
+                         { title: 'Low → High Price', value: 3 },
+                         { title: 'High → Low Price', value: 4 }
+                    ]" label="Sort By" style="width:200px" class="view-select" variant="outlined" hide-details
+                         @update:model-value="fetchOrganizationData" />
                </div>
                <!-- Spinner --><!-- Show loader full width when loading -->
                <div v-if="loading" class="spinner-container" style="height: 300px;">
@@ -91,6 +98,7 @@ let searchTimeout: any = null;
 // State
 const loading = ref(false);
 const search = ref("");
+const sortType = ref(null);
 const organizationData = ref<any[]>([]);
 const totalOrganizations = ref(0);
 const menu = ref(false);
@@ -109,6 +117,7 @@ watch(search, () => {
           fetchOrganizationData();
      }, 500);
 });
+
 watch(search, (newValue) => {
      // Add a debounce to avoid multiple API calls on every keystroke
      if (searchTimeout) clearTimeout(searchTimeout);
@@ -174,7 +183,8 @@ const fetchOrganizationData = async () => {
           const response = await api.get(`/dashboard/organisation-info`, {
                params: {
                     page: page.value,
-                    search: search.value || ""
+                    search: search.value || "",
+                    sort: sortType.value
                }
           });
 

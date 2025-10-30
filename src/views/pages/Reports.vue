@@ -15,7 +15,7 @@
                          <v-tabs v-model="activeMainTab" background-color="white" color="primary" slider-color="primary"
                               class="main-tabs">
                               <v-tab value="organizations" class="text-body-1">Organizations</v-tab>
-                              <v-tab value="membership" class="text-body-1">Membership</v-tab>
+                              <v-tab value="membership" class="text- body-1">Membership</v-tab>
                               <v-tab value="cancelled_events" class="text-body-1">Cancelled Events</v-tab>
                               <v-tab value="draft_events" class="text-body-1">Draft</v-tab>
                               <!-- <v-tab value="users" class="text-body-1">Users</v-tab> -->
