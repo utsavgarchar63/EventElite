@@ -31,8 +31,8 @@
           <v-select v-model="sortValue" :items="[
             { title: 'A → Z', value: 1 },
             { title: 'Z → A', value: 2 },
-            { title: 'Date ↑', value: 3 },
-            { title: 'Date ↓', value: 4 }
+            { title: 'High to Low', value: 3 },
+            { title: 'Low to High', value: 4 }
           ]" density="compact" variant="outlined" hide-details label="Sort By" class="search-field"
             style="width: 150px;" />
 
