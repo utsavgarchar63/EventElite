@@ -28,21 +28,30 @@
           <!-- Search Field -->
           <v-text-field v-model="searchQuery" density="compact" variant="outlined" hide-details
             placeholder="Search events" prepend-inner-icon="mdi-magnify" class="search-field" />
+          <v-select v-model="sortValue" :items="[
+            { title: 'A → Z', value: 1 },
+            { title: 'Z → A', value: 2 },
+            { title: 'Date ↑', value: 3 },
+            { title: 'Date ↓', value: 4 }
+          ]" density="compact" variant="outlined" hide-details label="Sort By" class="search-field"
+            style="width: 150px;" />
+
         </v-col>
       </v-row>
 
       <!-- Tabs Content -->
       <v-window v-model="activeTab">
         <v-window-item value="upcoming">
-          <UserEvents :eventType="'upcoming'" :search="searchQuery" :refreshKey="refreshKeys.upcoming" />
+          <UserEvents :eventType="'upcoming'" :search="searchQuery" :sort="sortValue"
+            :refreshKey="refreshKeys.upcoming" />
         </v-window-item>
 
         <v-window-item value="past">
-          <UserEvents :eventType="'past'" :search="searchQuery" :refreshKey="refreshKeys.past" />
+          <UserEvents :eventType="'past'" :search="searchQuery" :sort="sortValue" :refreshKey="refreshKeys.past" />
         </v-window-item>
 
         <v-window-item value="cancelled">
-          <UserEvents :eventType="'cancelled'" :search="searchQuery" :refreshKey="refreshKeys.cancelled" />
+          <UserEvents :eventType="'cancelled'" :search="searchQuery"   :sort="sortValue" :refreshKey="refreshKeys.cancelled" />
         </v-window-item>
       </v-window>
     </div>
@@ -56,6 +65,7 @@ import UserEvents from "../pages/UserEvents.vue";
 
 const activeTab = ref("upcoming");
 const searchQuery = ref("");
+const sortValue = ref(1);
 
 // This object will trigger child re-fetch when changed
 const refreshKeys = reactive({

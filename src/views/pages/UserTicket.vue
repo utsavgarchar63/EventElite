@@ -82,20 +82,26 @@ interface Event {
   tickets: Ticket[];
 }
 
-const props = defineProps<{ ticketType: string }>();
+const props = defineProps<{ ticketType: string; sort: number }>();
 const events = ref<Event[]>([]);  // ✅ Tell TypeScript that events is an array of Event
 const loading = ref(false);
+
 
 const fetchTickets = async () => {
   loading.value = true;
   try {
-    const response = await api.get("/user/tickets");
+    const response = await api.get("/user/tickets", {
+      params: {
+        type: props.ticketType,
+        sort: props.sort   // ✅ send sort to API
+      }
+    });
+
     const data = response.data.data;
 
     if (props.ticketType === "upcoming") events.value = data.upcomingEvents;
     if (props.ticketType === "past") events.value = data.pastEvents;
     if (props.ticketType === "cancelled") events.value = data.cancelledEvents;
-    console.log(data.pastEvents)
   } catch (error) {
     console.error(error);
   } finally {
@@ -103,8 +109,11 @@ const fetchTickets = async () => {
   }
 };
 
+
 onMounted(fetchTickets);
 watch(() => props.ticketType, fetchTickets);
+
+watch(() => props.sort, fetchTickets);
 
 const formatDate = (date: string) =>
   new Date(date).toLocaleDateString(undefined, {

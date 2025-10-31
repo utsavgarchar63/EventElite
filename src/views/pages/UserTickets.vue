@@ -12,34 +12,28 @@
 
       <!-- Tabs -->
       <v-row class="align-center">
+
         <v-col>
-          <v-tabs
-            v-model="activeTab"
-            background-color="white"
-            color="primary"
-            slider-color="primary"
-            class="main-tabs"
-          >
-            <v-tab
-              v-for="tab in tabs"
-              :key="tab.value"
-              :value="tab.value"
-              class="text-body-1"
-            >
+          <v-tabs v-model="activeTab" background-color="white" color="primary" slider-color="primary" class="main-tabs">
+            <v-tab v-for="tab in tabs" :key="tab.value" :value="tab.value" class="text-body-1">
               {{ tab.label }}
             </v-tab>
           </v-tabs>
+        </v-col>
+        <v-col cols="auto" class="d-flex align-center gap-3">
+          <v-select v-model="sortValue" :items="[
+            { title: 'A → Z', value: 1 },
+            { title: 'Z → A', value: 2 },
+            { title: 'Date ↑', value: 3 },
+            { title: 'Date ↓', value: 4 }
+          ]" density="compact" variant="outlined" hide-details label="Sort By" style="width:150px" />
         </v-col>
       </v-row>
 
       <!-- Tabs Content -->
       <v-window v-model="activeTab">
-        <v-window-item
-          v-for="tab in tabs"
-          :key="tab.value"
-          :value="tab.value"
-        >
-          <UserTicket :ticketType="tab.value" />
+        <v-window-item v-for="tab in tabs" :key="tab.value" :value="tab.value">
+          <UserTicket :ticketType="tab.value" :sort="sortValue" />
         </v-window-item>
       </v-window>
     </div>
@@ -50,6 +44,7 @@
 import { ref } from "vue";
 import UserTicket from "./UserTicket.vue";
 
+const sortValue = ref(1);
 const activeTab = ref("upcoming");
 
 // Define tabs dynamically

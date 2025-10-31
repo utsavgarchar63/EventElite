@@ -20,19 +20,11 @@
           <v-col cols="12" sm="6" class="d-flex justify-end flex-wrap gap-2">
             <v-text-field v-model="search" placeholder="Search Coordinators" density="compact" variant="outlined"
               hide-details clearable append-inner-icon="mdi-magnify" class="search-bar" />
-
-            <v-menu v-model="sortMenu" offset-y>
-              <template #activator="{ props }">
-                <v-btn v-bind="props" variant="outlined" class="d-flex align-center gap-2">
-                  <v-icon>mdi-sort</v-icon> Sort
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item v-for="option in sortOptions" :key="option.value" @click="applySort(option.value)">
-                  <v-list-item-title>{{ option.label }}</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
+            <v-select v-model="sortType" :items="[
+              { title: 'A → Z', value: 1 },
+              { title: 'Z → A', value: 2 }
+            ]" density="compact" label="Sort" style="width:150px" variant="outlined" hide-details
+              @update:model-value="applySort" />
           </v-col>
         </v-row>
       </div>
@@ -172,19 +164,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import api from "@/plugins/axios";
 import { useSnackbarStore } from "@/store/snackbar";
 import { router } from "@/router";
 
 const snackbar = useSnackbarStore();
 
+const sortType = ref(null);
 const loading = ref(false);
 const saving = ref(false);
 const dialog = ref(false);
 const isEdit = ref(false);
+const currentSort = ref('');
 const search = ref("");
-const sortMenu = ref(false);
 const coordinators = ref([]);
 const totalCoordinators = ref(0);
 const selectedCoordinator = ref(null);
@@ -223,17 +216,18 @@ const rules = {
   events: (v) => (v && v.length > 0) || "Select at least one event",
 };
 
-const sortOptions = [
-  { label: "A-Z", value: "az" },
-  { label: "Z-A", value: "za" },
-];
-
 // Fetch coordinators
 const fetchCoordinators = async () => {
   loading.value = true;
   try {
     const token = localStorage.getItem("admin_token");
-    const { data } = await api.get("/coordinators/list");
+    const { data } = await api.get("/coordinators/list", {
+      params: {
+        sort: currentSort.value,
+        search: search.value || "",
+      }
+    });
+
     if (data.status) {
       coordinators.value = data.data;
       totalCoordinators.value = data.data.length;
@@ -245,6 +239,15 @@ const fetchCoordinators = async () => {
     loading.value = false;
   }
 };
+
+const applySort = () => {
+  currentSort.value = sortType.value;
+  fetchCoordinators();
+};
+
+watch(search, () => {
+  fetchCoordinators();
+});
 
 // Fetch events
 const fetchEvents = async () => {
@@ -427,12 +430,6 @@ const filteredCoordinators = computed(() => {
   );
 });
 
-// Sort
-const applySort = (type) => {
-  if (type === "az") coordinators.value.sort((a, b) => a.name.localeCompare(b.name));
-  if (type === "za") coordinators.value.sort((a, b) => b.name.localeCompare(a.name));
-  sortMenu.value = false;
-};
 
 onMounted(fetchCoordinators);
 </script>

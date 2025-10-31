@@ -1,81 +1,75 @@
-<template>
-    <v-container>
-        <div style="background: white; border-radius: 8px">
-            <!-- Header -->
-            <div class="header-section pa-4">
-                <v-row class="d-flex align-center" dense>
-                    <v-col cols="12" sm="6" class="d-flex align-center">
-                        <h5 class="title h3 mb-2 mb-sm-0">All Vendors ({{ totalVendors }})</h5>
-                    </v-col>
+    <template>
+        <v-container>
+            <div style="background: white; border-radius: 8px">
+                <!-- Header -->
+                <div class="header-section pa-4">
+                    <v-row class="d-flex align-center" dense>
+                        <v-col cols="12" sm="6" class="d-flex align-center">
+                            <h5 class="title h3 mb-2 mb-sm-0">All Vendors ({{ totalVendors }})</h5>
+                        </v-col>
 
-                    <v-col cols="12" sm="6" class="d-flex justify-end flex-wrap gap-2">
-                        <v-text-field v-model="search" placeholder="Search Vendors" density="compact" variant="outlined"
-                            hide-details clearable append-inner-icon="mdi-magnify" class="search-bar" />
-                        <v-menu v-model="sortMenu" offset-y>
-                            <template #activator="{ props }">
-                                <v-btn v-bind="props" variant="outlined" class="d-flex align-center gap-2">
-                                    <v-icon>mdi-sort</v-icon> Sort
-                                </v-btn>
-                            </template>
-                            <v-list>
-                                <v-list-item v-for="option in sortOptions" :key="option.value"
-                                    @click="applySort(option.value)">
-                                    <v-list-item-title>{{ option.label }}</v-list-item-title>
-                                </v-list-item>
-                            </v-list>
-                        </v-menu>
-                    </v-col>
-                </v-row>
+                        <v-col cols="12" sm="6" class="d-flex justify-end flex-wrap gap-2">
+                            <v-text-field v-model="search" placeholder="Search Vendors" density="compact"
+                                variant="outlined" hide-details clearable append-inner-icon="mdi-magnify"
+                                class="search-bar" />
+                            <v-select v-model="sortType" :items="[
+                                { title: 'A → Z', value: 1 },
+                                { title: 'Z → A', value: 2 }
+                            ]" density="compact" label="Sort By" style="width:200px" variant="outlined" hide-details
+                                @update:model-value="applySort" />
+                        </v-col>
+                    </v-row>
+                </div>
+
+                <!-- Loader -->
+                <div v-if="loading" class="loader-wrapper">
+                    <v-progress-circular indeterminate color="primary" size="48" />
+                </div>
+
+                <!-- Vendors Table -->
+                <!-- Vendors Table -->
+                <div v-else class="table-wrapper">
+                    <v-data-table :headers="headers" :items="filteredVendors" hide-default-footer class="custom-table"
+                        density="comfortable" @click:row="goToVendorDetail">
+                        <!-- <template #item.business_name="{ item }">
+                            <div class="d-flex align-center gap-2 flex-wrap">
+                                <v-avatar v-if="item.logo" size="32">
+                                    <img :src="item.logo" alt="" />
+                                </v-avatar>
+                                <strong class="truncate">{{ item.business_name }}</strong>
+                            </div>
+                        </template> -->
+                        <template #item.business_name="{ item }">
+                            <div class="d-flex align-center gap-3">
+                                <!-- Avatar: show logo if exists, fallback to placeholder if broken -->
+                                <v-avatar v-if="item.logo || placeholder" size="36">
+                                    <img :src="item.logo || placeholder" @error="onImageError($event)"
+                                        alt="Business Logo" />
+                                </v-avatar>
+
+                                <strong>{{ item.business_name }}</strong>
+                            </div>
+                        </template>
+
+
+
+                        <template #item.action="{ item }">
+                            <a style="color:rgb(33 33 33);" :href="item.business_link" target="_blank">
+                                <v-icon>mdi-web</v-icon>
+                            </a>
+                        </template>
+                    </v-data-table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-center mt-4 flex-wrap">
+                    <v-pagination v-model="page" :length="pageCount" total-visible="5"
+                        @update:modelValue="fetchVendors" />
+                </div>
+
             </div>
-
-            <!-- Loader -->
-            <div v-if="loading" class="loader-wrapper">
-                <v-progress-circular indeterminate color="primary" size="48" />
-            </div>
-
-            <!-- Vendors Table -->
-            <!-- Vendors Table -->
-            <div v-else class="table-wrapper">
-                <v-data-table :headers="headers" :items="filteredVendors" hide-default-footer class="custom-table"
-                    density="comfortable" @click:row="goToVendorDetail">
-                    <!-- <template #item.business_name="{ item }">
-                        <div class="d-flex align-center gap-2 flex-wrap">
-                            <v-avatar v-if="item.logo" size="32">
-                                <img :src="item.logo" alt="" />
-                            </v-avatar>
-                            <strong class="truncate">{{ item.business_name }}</strong>
-                        </div>
-                    </template> -->
-                    <template #item.business_name="{ item }">
-                        <div class="d-flex align-center gap-3">
-                            <!-- Avatar: show logo if exists, fallback to placeholder if broken -->
-                            <v-avatar v-if="item.logo || placeholder" size="36">
-                                <img :src="item.logo || placeholder" @error="onImageError($event)"
-                                    alt="Business Logo" />
-                            </v-avatar>
-
-                            <strong>{{ item.business_name }}</strong>
-                        </div>
-                    </template>
-
-
-
-                    <template #item.action="{ item }">
-                        <a style="color:rgb(33 33 33);" :href="item.business_link" target="_blank">
-                            <v-icon>mdi-web</v-icon>
-                        </a>
-                    </template>
-                </v-data-table>
-            </div>
-
-            <!-- Pagination -->
-            <div class="d-flex justify-center mt-4 flex-wrap">
-                <v-pagination v-model="page" :length="pageCount" total-visible="5" @update:modelValue="fetchVendors" />
-            </div>
-
-        </div>
-    </v-container>
-</template>
+        </v-container>
+    </template>
 
 <script setup>
 import CryptoJS from "crypto-js";
@@ -91,18 +85,15 @@ const vendors = ref([]);
 const totalVendors = ref(0);
 const page = ref(1);
 const pageCount = ref(0);
-
-const sortMenu = ref(false);
+const sortType = ref(null);
 const currentSort = ref('');
+
+
 const SECRET_KEY = import.meta.env.VITE_SECRET_KEY;
 
 const onImageError = (event) => {
     event.target.src = placeholder;
 };
-const sortOptions = [
-    { label: 'A-Z', value: 'az' },
-    { label: 'Z-A', value: 'za' }
-];
 
 const headers = [
     { title: 'Business Name', key: 'business_name' },
@@ -112,41 +103,49 @@ const headers = [
     { title: 'Action', key: 'action', sortable: false }
 ];
 
+const applySort = () => {
+  currentSort.value = sortType.value;
+  page.value = 1;
+  fetchVendors();
+};
+
 // Fetch Vendors API
 const fetchVendors = async () => {
     loading.value = true;
-    const userString = localStorage.getItem('user'); // get the string
+
+    const userString = localStorage.getItem('user');
     const user = userString ? JSON.parse(userString) : null;
-    const orgId = localStorage.getItem('organization_id'); // get the string
+    const orgId = localStorage.getItem('organization_id');
     const role = localStorage.getItem('role');
 
     try {
-        console.log(user.organization_id)
-        const response = await api.get(`/vendors/list/${role === "super_admin" ? orgId : user.organization_id}`, {
-            // params: {
-            //     page: page.value,
-            //     search: search.value || '',
-            //     sort: currentSort.value
-            // }
-        });
+        const response = await api.get(
+            `/vendors/list/${role === "super_admin" ? orgId : user.organization_id}`,
+            {
+                params: {
+                    page: page.value,
+                    search: search.value || '',
+                    sort: currentSort.value  // ✅ API sorting
+                }
+            }
+        );
 
-        // Adjusted to your API response
         if (response.data.success) {
-            const result = response.data.data; // main data object
-            console.log(result.data)
-            vendors.value = result.data; // array of vendors
-            totalVendors.value = result.total; // total count
-            pageCount.value = result.last_page; // total pages
+            const result = response.data.data;
+            vendors.value = result.data;
+            totalVendors.value = result.total;
+            pageCount.value = result.last_page;
         } else {
             vendors.value = [];
             totalVendors.value = 0;
         }
-    } catch (error) {
-        console.error('Failed to fetch vendors:', error);
+    } catch (err) {
+        console.error(err);
     } finally {
         loading.value = false;
     }
 };
+
 
 const goToVendorDetail = (event, item) => {
     const id = item.item.id.toString();
@@ -170,10 +169,6 @@ const filteredVendors = computed(() => {
     );
 });
 
-const applySort = (value) => {
-    currentSort.value = value;
-    fetchVendors();
-};
 
 onMounted(fetchVendors);
 watch(page, fetchVendors);

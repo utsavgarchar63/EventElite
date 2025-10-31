@@ -9,6 +9,7 @@
       <!-- Event List -->
       <template v-else>
         <v-col v-for="(event, index) in filteredEvents" :key="index" cols="12">
+
           <v-card class="event-card" elevation="0">
             <v-row no-gutters style="cursor:pointer" @click="goToDetail(event.event_id)">
               <!-- Event Image -->
@@ -91,11 +92,17 @@ interface EventItem {
 const props = defineProps<{
   eventType: "upcoming" | "past" | "cancelled";
   search: string;
-  refreshKey: number;  // 👈 new prop
+  refreshKey: number;
+  sort: number;   // ✅ new
 }>();
+
 // Watch for refreshKey changes
 watch(() => props.refreshKey, () => {
   fetchEvents();
+});
+
+watch(() => props.sort, () => {
+  fetchEvents()
 });
 
 const formatDate = (isoDate: string) => {
@@ -131,7 +138,13 @@ const loading = ref(false); // 👈 loading state
 const fetchEvents = async () => {
   loading.value = true; // 👈 start loader
   try {
-    const res = await api.get("/user/events");
+    const res = await api.get("/user/events", {
+      params: {
+        eventType: props.eventType,
+        search: props.search,
+        sort: props.sort   // ✅ send sort to API
+      }
+    });
     if (res.data.status) {
       events.value = res.data.data;
     }
@@ -195,6 +208,28 @@ const getStatusColor = (status: string) => {
       return "grey";
   }
 };
+
+// const sortedEvents = computed(() => {
+//   let list = [...filteredEvents.value];
+
+//   if (props.sort === 1) {
+//     list.sort((a, b) => a.event_name.localeCompare(b.event_name)); // A → Z
+//   }
+//   else if (props.sort === 2) {
+//     list.sort((a, b) => b.event_name.localeCompare(a.event_name)); // Z → A
+//   }
+//   else if (props.sort === 3) {
+//     // Date Ascending (Oldest first)
+//     list.sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+//   }
+//   else if (props.sort === 4) {
+//     // Date Descending (Newest first)
+//     list.sort((a, b) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime());
+//   }
+
+//   return list;
+// });
+
 
 
 // Re-fetch events whenever tab changes
